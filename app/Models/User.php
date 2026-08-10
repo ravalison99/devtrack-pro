@@ -46,4 +46,14 @@ class User extends Authenticatable
     {
         return $this->role === 'stagiaire';
     }
+
+    public function stagesEnTantQueStagiaire(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Stage::class, 'stagiaire_id');
+    }
+
+    public function stagesEnTantQueMentor(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Stage::class, 'mentor_id');
+    }
 }
