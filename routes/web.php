@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\StageController;
 use Illuminate\Support\Facades\Route;
 
@@ -18,4 +19,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/stages', [StageController::class, 'index'])->name('stages.index');
     Route::get('/stages/create', [StageController::class, 'create'])->name('stages.create');
     Route::post('/stages', [StageController::class, 'store'])->name('stages.store');
+
+    Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('/stages/{stage}/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+    Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
 });
