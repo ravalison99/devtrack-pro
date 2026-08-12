@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\StageController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -14,4 +15,5 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', fn () => 'Tableau de bord (à construire)')->name('dashboard');
+    Route::post('/stages', [StageController::class, 'store'])->name('stages.store');
 });
