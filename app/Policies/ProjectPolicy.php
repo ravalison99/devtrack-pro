@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Project;
+use App\Models\Stage;
 use App\Models\User;
 
 class ProjectPolicy

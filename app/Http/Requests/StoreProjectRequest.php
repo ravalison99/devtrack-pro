@@ -2,16 +2,19 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Stage;
+use App\Models\Project;
+use App\Repositories\Contracts\StageRepositoryInterface;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProjectRequest extends FormRequest
 {
+    public function __construct(protected StageRepositoryInterface $stages) {}
+
     public function authorize(): bool
     {
-        $stage = Stage::findOrFail($this->input('stage_id'));
+        $stage = $this->stages->findById((int) $this->input('stage_id'));
 
-        return $this->user()->can('create', [\App\Models\Project::class, $stage]);
+        return $stage !== null && $this->user()->can('create', [Project::class, $stage]);
     }
 
     public function rules(): array
