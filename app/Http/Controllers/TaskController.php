@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAttachmentRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskStatusRequest;
 use App\Models\Task;
@@ -35,5 +36,12 @@ class TaskController extends Controller
         $this->taskService->changerStatut($task, $request->validated('statut'));
 
         return back()->with('success', 'Statut mis à jour.');
+    }
+
+    public function storeAttachment(StoreAttachmentRequest $request, Task $task)
+    {
+        $this->taskService->ajouterPieceJointe($task, $request->file('fichier'));
+
+        return back()->with('success', 'Pièce jointe ajoutée.');
     }
 }
