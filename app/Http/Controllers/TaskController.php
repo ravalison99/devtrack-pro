@@ -22,6 +22,12 @@ class TaskController extends Controller
         return view('tasks.index', compact('tasks'));
     }
 
+    public function show(Task $task)
+    {
+        $task = $this->tasks->findById($task->id);
+        return view('tasks.show', compact('task'));
+    }
+
     public function store(StoreTaskRequest $request)
     {
         $this->taskService->creer($request->validated());
