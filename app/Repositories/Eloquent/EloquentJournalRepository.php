@@ -11,7 +11,7 @@ class EloquentJournalRepository implements JournalRepositoryInterface
     public function findByStagiaireAndDate(int $stagiaireId, string $date): ?JournalEntry
     {
         return JournalEntry::where('stagiaire_id', $stagiaireId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->first();
     }
 
