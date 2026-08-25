@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\JournalController;
 use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\StageController;
@@ -33,4 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/tasks/{task}/attachments', [TaskController::class, 'storeAttachment'])->name('tasks.attachments.store');
 
     Route::get('/projects/{project}/kanban', [KanbanController::class, 'show'])->name('kanban.show');
+
+    Route::get('/journal', [JournalController::class, 'index'])->name('journal.index');
+    Route::post('/journal', [JournalController::class, 'store'])->name('journal.store');
 });
