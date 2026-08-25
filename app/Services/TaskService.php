@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\TaskStatusChanged;
 use App\Models\Task;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use Illuminate\Http\UploadedFile;
@@ -34,7 +35,12 @@ class TaskService
             ]);
         }
 
-        return $this->tasks->updateStatut($task, $nouveauStatut);
+        $ancienStatut = $task->statut;
+        $task = $this->tasks->updateStatut($task, $nouveauStatut);
+
+        TaskStatusChanged::dispatch($task, $ancienStatut, $nouveauStatut);
+
+        return $task;
     }
 
     public function ajouterPieceJointe(Task $task, UploadedFile $fichier): \App\Models\Attachment

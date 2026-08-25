@@ -8,9 +8,13 @@ use App\Http\Requests\UpdateTaskStatusRequest;
 use App\Models\Task;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Services\TaskService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         protected TaskService $taskService,
         protected TaskRepositoryInterface $tasks
@@ -39,7 +43,20 @@ class TaskController extends Controller
 
     public function updateStatus(UpdateTaskStatusRequest $request, Task $task)
     {
-        $this->taskService->changerStatut($task, $request->validated('statut'));
+        $nouveauStatut = $request->validated('statut');
+
+        if (! auth()->user()->can('updateStatus', [$task, $nouveauStatut])) {
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Action non autorisée.'], 403);
+            }
+            abort(403);
+        }
+
+        $this->taskService->changerStatut($task, $nouveauStatut);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'statut' => $nouveauStatut]);
+        }
 
         return back()->with('success', 'Statut mis à jour.');
     }
