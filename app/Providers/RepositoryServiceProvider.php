@@ -27,6 +27,11 @@ class RepositoryServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\TaskRepositoryInterface::class,
             \App\Repositories\Eloquent\EloquentTaskRepository::class
         );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\JournalRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentJournalRepository::class
+        );
     }
 
     public function boot(): void

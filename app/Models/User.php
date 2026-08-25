@@ -2,15 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     protected $fillable = [
@@ -34,26 +32,34 @@ class User extends Authenticatable
             'is_active' => 'boolean',
         ];
     }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
+
     public function isMentor(): bool
     {
         return $this->role === 'mentor';
     }
+
     public function isStagiaire(): bool
     {
         return $this->role === 'stagiaire';
     }
 
-    public function stagesEnTantQueStagiaire(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function stagesEnTantQueStagiaire(): HasMany
     {
         return $this->hasMany(Stage::class, 'stagiaire_id');
     }
 
-    public function stagesEnTantQueMentor(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function stagesEnTantQueMentor(): HasMany
     {
         return $this->hasMany(Stage::class, 'mentor_id');
+    }
+
+    public function journalEntries(): HasMany
+    {
+        return $this->hasMany(JournalEntry::class, 'stagiaire_id');
     }
 }
