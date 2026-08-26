@@ -32,6 +32,11 @@ class RepositoryServiceProvider extends ServiceProvider
             \App\Repositories\Contracts\JournalRepositoryInterface::class,
             \App\Repositories\Eloquent\EloquentJournalRepository::class
         );
+
+        $this->app->bind(
+            \App\Repositories\Contracts\WeeklyReportRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentWeeklyReportRepository::class
+        );
     }
 
     public function boot(): void
