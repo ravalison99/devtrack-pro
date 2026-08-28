@@ -62,4 +62,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(JournalEntry::class, 'stagiaire_id');
     }
+
+    public function weeklyReports(): HasMany
+    {
+        return $this->hasMany(WeeklyReport::class, 'stagiaire_id');
+    }
 }

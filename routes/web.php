@@ -7,6 +7,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\StageController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\WeeklyReportController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -37,4 +38,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/journal', [JournalController::class, 'index'])->name('journal.index');
     Route::post('/journal', [JournalController::class, 'store'])->name('journal.store');
+
+    Route::get('/reports', [WeeklyReportController::class, 'index'])->name('reports.index');
+    Route::post('/reports', [WeeklyReportController::class, 'store'])->name('reports.store');
+    Route::get('/reports/{id}/download', [WeeklyReportController::class, 'download'])->name('reports.download');
 });
