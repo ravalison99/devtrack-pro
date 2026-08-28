@@ -10,6 +10,7 @@ class WeeklyReport extends Model
     protected $fillable = [
         'stagiaire_id',
         'semaine',
+        'contenu',
         'fichier_pdf',
         'statut',
         'commentaire_mentor',
