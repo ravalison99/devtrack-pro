@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\WeeklyReportSubmitted;
 use App\Models\User;
 use App\Models\WeeklyReport;
 use App\Repositories\Contracts\WeeklyReportRepositoryInterface;
@@ -31,8 +32,11 @@ class ReportService
         }
 
         $cheminPdf = $this->genererPdf($report);
+        $report = $this->reports->update($report, ['fichier_pdf' => $cheminPdf]);
 
-        return $this->reports->update($report, ['fichier_pdf' => $cheminPdf]);
+        WeeklyReportSubmitted::dispatch($report);
+
+        return $report;
     }
 
     protected function genererPdf(WeeklyReport $report): string

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\WeeklyReport;
 use App\Repositories\Contracts\WeeklyReportRepositoryInterface;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
@@ -36,10 +37,7 @@ class WeeklyReportController extends Controller
 
     public function download(int $id)
     {
-        $report = $this->reports->findByStagiaireAndSemaine(auth()->id(), request('semaine'))
-            ?? abort(404);
-
-        $report = \App\Models\WeeklyReport::findOrFail($id);
+        $report = WeeklyReport::findOrFail($id);
 
         abort_unless(auth()->user()->can('view', $report), 403);
 
