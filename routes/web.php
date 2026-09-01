@@ -1,14 +1,15 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\StageController;
 use App\Http\Controllers\TaskController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WeeklyReportController;
-use App\Http\Controllers\DashboardController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -43,4 +44,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [WeeklyReportController::class, 'index'])->name('reports.index');
     Route::post('/reports', [WeeklyReportController::class, 'store'])->name('reports.store');
     Route::get('/reports/{id}/download', [WeeklyReportController::class, 'download'])->name('reports.download');
+
+    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{documentId}/versions/{versionId}/download', [DocumentController::class, 'download'])->name('documents.download');
+
+    Route::get('/notifications', [DashboardController::class, 'notifications'])->name('notifications.index');
 });
