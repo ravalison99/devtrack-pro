@@ -32,4 +32,11 @@ class EloquentWeeklyReportRepository implements WeeklyReportRepositoryInterface
         $report->update($data);
         return $report;
     }
+
+    public function countForMentor(int $mentorId): int
+    {
+        return WeeklyReport::whereHas('stagiaire.stagesEnTantQueStagiaire', function ($query) use ($mentorId) {
+            $query->where('mentor_id', $mentorId);
+        })->count();
+    }
 }
