@@ -14,4 +14,10 @@ class DashboardController extends Controller
 
         return view('dashboard.index', compact('indicateurs'));
     }
+
+    public function notifications()
+    {
+        $notifications = auth()->user()->notifications;
+        return view('dashboard.notifications', compact('notifications'));
+    }
 }
