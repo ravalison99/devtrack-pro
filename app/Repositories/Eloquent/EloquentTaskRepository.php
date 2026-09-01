@@ -33,4 +33,15 @@ class EloquentTaskRepository implements TaskRepositoryInterface
         $task->update(['statut' => $statut]);
         return $task;
     }
+    
+    public function countByStatutForStagiaire(int $stagiaireId): array
+    {
+        return Task::whereHas('project.stage', function ($query) use ($stagiaireId) {
+            $query->where('stagiaire_id', $stagiaireId);
+        })
+            ->selectRaw('statut, count(*) as total')
+            ->groupBy('statut')
+            ->pluck('total', 'statut')
+            ->toArray();
+    }
 }

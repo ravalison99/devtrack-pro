@@ -12,4 +12,5 @@ interface TaskRepositoryInterface
     public function findByProject(int $projectId): Collection;
     public function create(array $data): Task;
     public function updateStatut(Task $task, string $statut): Task;
+    public function countByStatutForStagiaire(int $stagiaireId): array;
 }
