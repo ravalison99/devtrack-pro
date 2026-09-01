@@ -11,4 +11,5 @@ interface WeeklyReportRepositoryInterface
     public function findByStagiaire(int $stagiaireId): Collection;
     public function create(array $data): WeeklyReport;
     public function update(WeeklyReport $report, array $data): WeeklyReport;
+    public function countForMentor(int $mentorId): int;
 }

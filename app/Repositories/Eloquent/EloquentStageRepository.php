@@ -40,4 +40,8 @@ class EloquentStageRepository implements StageRepositoryInterface
         $stage->update($data);
         return $stage;
     }
+    public function countActifs(): int
+    {
+        return Stage::where('statut', 'en_cours')->count();
+    }
 }

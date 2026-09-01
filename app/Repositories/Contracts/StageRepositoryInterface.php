@@ -13,4 +13,5 @@ interface StageRepositoryInterface
     public function findByMentor(int $mentorId): Collection;
     public function create(array $data): Stage;
     public function update(Stage $stage, array $data): Stage;
+    public function countActifs(): int;
 }
