@@ -3,12 +3,14 @@
 namespace App\Listeners;
 
 use App\Events\WeeklyReportSubmitted;
-use Illuminate\Support\Facades\Log;
+use App\Notifications\WeeklyReportSubmittedNotification;
 
 class LogWeeklyReportSubmitted
 {
     public function handle(WeeklyReportSubmitted $event): void
     {
-        Log::info("Rapport semaine {$event->report->semaine} soumis par {$event->report->stagiaire->name}.");
+        $mentor = $event->report->stagiaire->stagesEnTantQueStagiaire()->first()?->mentor;
+
+        $mentor?->notify(new WeeklyReportSubmittedNotification($event->report));
     }
 }

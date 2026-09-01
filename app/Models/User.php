@@ -67,4 +67,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(WeeklyReport::class, 'stagiaire_id');
     }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class, 'utilisateur_id');
+    }
 }
