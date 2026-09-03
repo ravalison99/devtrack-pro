@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Services\AuthService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -21,7 +23,23 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8'],
         ]);
 
-        $user = $this->authService->authenticate($credentials['email'], $credentials['password']);
+        $limiteur = 'login:' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($limiteur, 5)) {
+            $secondes = RateLimiter::availableIn($limiteur);
+            throw ValidationException::withMessages([
+                'email' => "Trop de tentatives. Réessayez dans {$secondes} secondes.",
+            ]);
+        }
+
+        try {
+            $user = $this->authService->authenticate($credentials['email'], $credentials['password']);
+        } catch (ValidationException $e) {
+            RateLimiter::hit($limiteur, 60);
+            throw $e;
+        }
+
+        RateLimiter::clear($limiteur);
 
         return redirect()->route('dashboard');
     }
