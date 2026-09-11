@@ -6,10 +6,10 @@ use App\Http\Requests\StoreAttachmentRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskStatusRequest;
 use App\Models\Task;
+use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Services\TaskService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
@@ -17,13 +17,15 @@ class TaskController extends Controller
 
     public function __construct(
         protected TaskService $taskService,
-        protected TaskRepositoryInterface $tasks
+        protected TaskRepositoryInterface $tasks,
+        protected ProjectRepositoryInterface $projects
     ) {}
 
     public function index()
     {
         $tasks = $this->tasks->all();
-        return view('tasks.index', compact('tasks'));
+        $projects = $this->projects->all();
+        return view('tasks.index', compact('tasks', 'projects'));
     }
 
     public function show(Task $task)

@@ -4,6 +4,36 @@
     <div style="color:green">{{ session('success') }}</div>
 @endif
 
+@if ($errors->any())
+    <div style="color:red">{{ $errors->first() }}</div>
+@endif
+
+<h2>Créer une tâche</h2>
+<form method="POST" action="{{ route('tasks.store') }}">
+    @csrf
+    <label>Projet</label>
+    <select name="project_id">
+        @foreach ($projects as $project)
+            <option value="{{ $project->id }}">{{ $project->nom }}</option>
+        @endforeach
+    </select>
+
+    <label>Titre</label>
+    <input type="text" name="titre">
+
+    <label>Priorité</label>
+    <select name="priorite">
+        <option value="basse">Basse</option>
+        <option value="moyenne" selected>Moyenne</option>
+        <option value="haute">Haute</option>
+    </select>
+
+    <label>Date d'échéance (optionnel)</label>
+    <input type="date" name="date_echeance">
+
+    <button type="submit">Créer</button>
+</form>
+
 <table>
     <tr><th>Titre</th><th>Projet</th><th>Priorité</th><th>Statut</th><th>Actions</th></tr>
     @foreach ($tasks as $task)
