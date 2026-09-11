@@ -6,6 +6,7 @@
             Tâche « {{ $notification->data['titre'] }} » : {{ $notification->data['ancien_statut'] }} → {{ $notification->data['nouveau_statut'] }}
         @elseif ($notification->type === 'App\Notifications\WeeklyReportSubmittedNotification')
             {{ $notification->data['stagiaire'] }} a soumis son rapport de la semaine {{ $notification->data['semaine'] }}
+            — <a href="{{ route('reports.download', $notification->data['report_id']) }}">Télécharger le PDF</a>
         @endif
     </div>
 @empty
