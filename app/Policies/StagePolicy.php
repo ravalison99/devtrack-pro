@@ -23,4 +23,14 @@ class StagePolicy
             || $user->id === $stage->mentor_id
             || $user->id === $stage->stagiaire_id;
     }
+
+    public function updateStatus(User $user, Stage $stage): bool
+    {
+        return $user->isAdmin();
+    }
+
+    public function delete(User $user, Stage $stage): bool
+    {
+        return $user->isAdmin();
+    }
 }

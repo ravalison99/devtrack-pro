@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\Document;
 use App\Repositories\Contracts\DocumentRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class EloquentDocumentRepository implements DocumentRepositoryInterface
@@ -16,6 +17,15 @@ class EloquentDocumentRepository implements DocumentRepositoryInterface
     public function findByUtilisateur(int $utilisateurId): Collection
     {
         return Document::where('utilisateur_id', $utilisateurId)->get();
+    }
+
+    public function paginateByUtilisateur(int $utilisateurId, int $parPage = 5): LengthAwarePaginator
+    {
+        return Document::with('versions')
+            ->where('utilisateur_id', $utilisateurId)
+            ->orderByDesc('id')
+            ->paginate($parPage)
+            ->withQueryString();
     }
 
     public function create(array $data): Document

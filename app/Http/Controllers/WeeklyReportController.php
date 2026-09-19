@@ -17,7 +17,7 @@ class WeeklyReportController extends Controller
 
     public function index()
     {
-        $reports = $this->reports->findByStagiaire(auth()->id());
+        $reports = $this->reports->paginateByStagiaire(auth()->id());
         return view('reports.index', compact('reports'));
     }
 

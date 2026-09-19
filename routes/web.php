@@ -8,6 +8,7 @@ use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\StageController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WeeklyReportController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,12 +26,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/stages', [StageController::class, 'index'])->name('stages.index');
     Route::get('/stages/create', [StageController::class, 'create'])->name('stages.create');
     Route::post('/stages', [StageController::class, 'store'])->name('stages.store');
+    Route::patch('/stages/{stage}/status', [StageController::class, 'updateStatus'])->name('stages.updateStatus');
+    Route::delete('/stages/{stage}', [StageController::class, 'destroy'])->name('stages.destroy');
 
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create.mentor');
     Route::get('/stages/{stage}/projects/create', [ProjectController::class, 'create'])->name('projects.create');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
 
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+    Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
     Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
     Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
     Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
@@ -50,4 +55,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents/{documentId}/versions/{versionId}/download', [DocumentController::class, 'download'])->name('documents.download');
 
     Route::get('/notifications', [DashboardController::class, 'notifications'])->name('notifications.index');
+    Route::delete('/notifications/{notification}', [DashboardController::class, 'deleteNotification'])->name('notifications.destroy');
+
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 });

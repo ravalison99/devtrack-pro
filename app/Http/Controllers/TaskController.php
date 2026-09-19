@@ -6,6 +6,7 @@ use App\Http\Requests\StoreAttachmentRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskStatusRequest;
 use App\Models\Task;
+use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Services\TaskService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -17,19 +18,54 @@ class TaskController extends Controller
 
     public function __construct(
         protected TaskService $taskService,
-        protected TaskRepositoryInterface $tasks
+        protected TaskRepositoryInterface $tasks,
+        protected ProjectRepositoryInterface $projects
     ) {}
 
     public function index()
     {
-        $tasks = $this->tasks->all();
-        return view('tasks.index', compact('tasks'));
+        $utilisateur = auth()->user();
+
+        $tasks = match (true) {
+            $utilisateur->isAdmin() => $this->tasks->paginateAll(),
+            $utilisateur->isMentor() => $this->tasks->paginateForMentor($utilisateur->id),
+            default => $this->tasks->paginateForStagiaire($utilisateur->id),
+        };
+
+        $transitionsParTache = collect($tasks->items())->mapWithKeys(
+            fn (Task $task) => [$task->id => $this->taskService->transitionsAutoriseesPour($task, $utilisateur)]
+        );
+
+        return view('tasks.index', compact('tasks', 'transitionsParTache'));
     }
 
     public function show(Task $task)
     {
+        $this->authorize('view', $task);
+
         $task = $this->tasks->findById($task->id);
+
         return view('tasks.show', compact('task'));
+    }
+
+    public function create(Request $request)
+    {
+        $utilisateur = auth()->user();
+
+        abort_unless($utilisateur->isAdmin() || $utilisateur->isMentor(), 403);
+
+        $projetSelectionne = null;
+
+        if ($request->filled('project_id')) {
+            $projetSelectionne = $this->projects->findById((int) $request->input('project_id'));
+            $this->authorize('update', $projetSelectionne);
+        }
+
+        $projects = $utilisateur->isAdmin()
+            ? $this->projects->all()
+            : $this->projects->findForMentor($utilisateur->id);
+
+        return view('tasks.create', compact('projects', 'projetSelectionne'));
     }
 
     public function store(StoreTaskRequest $request)

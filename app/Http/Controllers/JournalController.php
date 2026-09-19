@@ -15,7 +15,7 @@ class JournalController extends Controller
 
     public function index()
     {
-        $entries = $this->entries->findByStagiaire(auth()->id());
+        $entries = $this->entries->paginateByStagiaire(auth()->id());
         return view('journal.index', compact('entries'));
     }
 
