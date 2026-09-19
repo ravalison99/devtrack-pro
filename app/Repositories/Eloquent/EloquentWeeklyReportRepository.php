@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\WeeklyReport;
 use App\Repositories\Contracts\WeeklyReportRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class EloquentWeeklyReportRepository implements WeeklyReportRepositoryInterface
@@ -20,6 +21,14 @@ class EloquentWeeklyReportRepository implements WeeklyReportRepositoryInterface
         return WeeklyReport::where('stagiaire_id', $stagiaireId)
             ->orderByDesc('semaine')
             ->get();
+    }
+
+    public function paginateByStagiaire(int $stagiaireId, int $parPage = 5): LengthAwarePaginator
+    {
+        return WeeklyReport::where('stagiaire_id', $stagiaireId)
+            ->orderByDesc('semaine')
+            ->paginate($parPage)
+            ->withQueryString();
     }
 
     public function create(array $data): WeeklyReport

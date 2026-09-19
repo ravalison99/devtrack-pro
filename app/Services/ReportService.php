@@ -8,6 +8,7 @@ use App\Models\WeeklyReport;
 use App\Repositories\Contracts\WeeklyReportRepositoryInterface;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class ReportService
 {
@@ -15,21 +16,20 @@ class ReportService
 
     public function soumettre(User $stagiaire, int $semaine, string $contenu): WeeklyReport
     {
-        $report = $this->reports->findByStagiaireAndSemaine($stagiaire->id, $semaine);
+        $existant = $this->reports->findByStagiaireAndSemaine($stagiaire->id, $semaine);
 
-        if ($report !== null) {
-            $report = $this->reports->update($report, [
-                'contenu' => $contenu,
-                'statut' => 'soumis',
-            ]);
-        } else {
-            $report = $this->reports->create([
-                'stagiaire_id' => $stagiaire->id,
-                'semaine' => $semaine,
-                'contenu' => $contenu,
-                'statut' => 'soumis',
+        if ($existant !== null) {
+            throw ValidationException::withMessages([
+                'semaine' => "Vous avez déjà soumis un rapport pour la semaine {$semaine}. Vous ne pouvez pas soumettre un deuxième rapport pour cette semaine. Veuillez sélectionner une autre semaine.",
             ]);
         }
+
+        $report = $this->reports->create([
+            'stagiaire_id' => $stagiaire->id,
+            'semaine' => $semaine,
+            'contenu' => $contenu,
+            'statut' => 'soumis',
+        ]);
 
         $cheminPdf = $this->genererPdf($report);
         $report = $this->reports->update($report, ['fichier_pdf' => $cheminPdf]);

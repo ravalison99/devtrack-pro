@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\JournalEntry;
 use App\Repositories\Contracts\JournalRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class EloquentJournalRepository implements JournalRepositoryInterface
@@ -20,6 +21,14 @@ class EloquentJournalRepository implements JournalRepositoryInterface
         return JournalEntry::where('stagiaire_id', $stagiaireId)
             ->orderByDesc('date')
             ->get();
+    }
+
+    public function paginateByStagiaire(int $stagiaireId, int $parPage = 5): LengthAwarePaginator
+    {
+        return JournalEntry::where('stagiaire_id', $stagiaireId)
+            ->orderByDesc('date')
+            ->paginate($parPage)
+            ->withQueryString();
     }
 
     public function create(array $data): JournalEntry

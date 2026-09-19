@@ -1,33 +1,65 @@
-<h1>Mes rapports hebdomadaires</h1>
+@extends('layouts.app')
 
-@if (session('success'))
-    <div style="color:green">{{ session('success') }}</div>
-@endif
+@section('title', 'Rapports hebdomadaires')
 
-@if ($errors->any())
-    <div style="color:red">{{ $errors->first() }}</div>
-@endif
+@section('content')
+    <h1 class="page-title h3 mb-4"><i class="bi bi-file-earmark-bar-graph me-2"></i>Mes rapports hebdomadaires</h1>
 
-<h2>Soumettre un rapport</h2>
-<form method="POST" action="{{ route('reports.store') }}">
-    @csrf
-    <label>Semaine</label>
-    <input type="number" name="semaine" min="1" max="12" value="{{ old('semaine') }}">
+    <div class="row g-4">
+        <div class="col-12 col-lg-5">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-send me-1"></i>Soumettre un rapport</div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('reports.store') }}">
+                        @csrf
 
-    <label>Contenu</label>
-    <textarea name="contenu" rows="6">{{ old('contenu') }}</textarea>
+                        <div class="mb-3">
+                            <label class="form-label">Semaine</label>
+                            <input type="number" name="semaine" min="1" max="12" value="{{ old('semaine') }}" class="form-control">
+                        </div>
 
-    <button type="submit">Soumettre</button>
-</form>
+                        <div class="mb-3">
+                            <label class="form-label">Contenu</label>
+                            <textarea name="contenu" rows="6" class="form-control">{{ old('contenu') }}</textarea>
+                        </div>
 
-<h2>Historique</h2>
-@forelse ($reports as $report)
-    <div style="border:1px solid #ccc; padding:8px; margin-bottom:8px;">
-        <strong>Semaine {{ $report->semaine }}</strong> — {{ $report->statut }}
-        @if ($report->fichier_pdf)
-            <a href="{{ route('reports.download', $report->id) }}">Télécharger le PDF</a>
-        @endif
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Soumettre
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-7">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-clock-history me-1"></i>Historique</div>
+                <div class="list-group list-group-flush">
+                    @php
+                        $couleursStatutRapport = ['soumis' => 'bg-secondary', 'valide' => 'bg-success', 'a_corriger' => 'bg-warning text-dark'];
+                    @endphp
+                    @forelse ($reports as $report)
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Semaine {{ $report->semaine }}</strong>
+                                <span class="badge ms-2 {{ $couleursStatutRapport[$report->statut] ?? 'bg-secondary' }}">{{ $report->statut }}</span>
+                            </div>
+                            @if ($report->fichier_pdf)
+                                <a href="{{ route('reports.download', $report->id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download me-1"></i>PDF
+                                </a>
+                            @endif
+                        </div>
+                    @empty
+                        <div class="list-group-item text-center text-muted py-4">Aucun rapport soumis pour le moment.</div>
+                    @endforelse
+                </div>
+                @if ($reports->hasPages())
+                    <div class="card-footer bg-white">
+                        {{ $reports->links('pagination::bootstrap-5') }}
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
-@empty
-    <p>Aucun rapport soumis pour le moment.</p>
-@endforelse
+@endsection

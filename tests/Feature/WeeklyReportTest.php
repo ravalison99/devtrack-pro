@@ -31,7 +31,7 @@ class WeeklyReportTest extends TestCase
         ]);
     }
 
-    public function test_une_deuxieme_soumission_pour_la_meme_semaine_met_a_jour_au_lieu_de_dupliquer(): void
+    public function test_une_deuxieme_soumission_pour_la_meme_semaine_est_refusee(): void
     {
         Storage::fake('local');
 
@@ -42,15 +42,16 @@ class WeeklyReportTest extends TestCase
             'contenu' => 'Premier contenu.',
         ]);
 
-        $this->actingAs($stagiaire)->post('/reports', [
+        $response = $this->actingAs($stagiaire)->post('/reports', [
             'semaine' => 5,
-            'contenu' => 'Contenu corrigé.',
+            'contenu' => 'Tentative de second rapport.',
         ]);
 
+        $response->assertSessionHasErrors('semaine');
         $this->assertDatabaseCount('weekly_reports', 1);
         $this->assertDatabaseHas('weekly_reports', [
             'stagiaire_id' => $stagiaire->id,
-            'contenu' => 'Contenu corrigé.',
+            'contenu' => 'Premier contenu.',
         ]);
     }
 

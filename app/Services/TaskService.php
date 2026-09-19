@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Events\TaskCreated;
 use App\Events\TaskStatusChanged;
 use App\Models\Task;
+use App\Models\User;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +24,22 @@ class TaskService
 
     public function creer(array $data): Task
     {
-        return $this->tasks->create($data);
+        $task = $this->tasks->create($data);
+
+        TaskCreated::dispatch($task);
+
+        return $task;
+    }
+
+    public function transitionsAutoriseesPour(Task $task, User $user): array
+    {
+        $transitions = self::TRANSITIONS_AUTORISEES[$task->statut] ?? [];
+
+        if ($user->isStagiaire()) {
+            $transitions = array_values(array_filter($transitions, fn (string $statut) => $statut !== 'termine'));
+        }
+
+        return $transitions;
     }
 
     public function changerStatut(Task $task, string $nouveauStatut): Task

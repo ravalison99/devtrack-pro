@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Document extends Model
 {
+    public const CATEGORIES = [
+        'Documents d\'analyse',
+        'Compte rendu',
+        'Convention de stage',
+    ];
+
     protected $fillable = [
         'utilisateur_id',
         'titre',

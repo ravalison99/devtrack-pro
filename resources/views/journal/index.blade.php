@@ -1,31 +1,55 @@
-<h1>Mon journal quotidien</h1>
+@extends('layouts.app')
 
-@if (session('success'))
-    <div style="color:green">{{ session('success') }}</div>
-@endif
+@section('title', 'Journal')
 
-@if ($errors->any())
-    <div style="color:red">{{ $errors->first() }}</div>
-@endif
+@section('content')
+    <h1 class="page-title h3 mb-4"><i class="bi bi-journal-text me-2"></i>Mon journal quotidien</h1>
 
-<h2>Nouvelle entrée</h2>
-<form method="POST" action="{{ route('journal.store') }}">
-    @csrf
-    <label>Date</label>
-    <input type="date" name="date" value="{{ old('date', now()->toDateString()) }}">
+    <div class="row g-4">
+        <div class="col-12 col-lg-5">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-pencil-square me-1"></i>Nouvelle entrée</div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('journal.store') }}">
+                        @csrf
 
-    <label>Contenu</label>
-    <textarea name="contenu" rows="4">{{ old('contenu') }}</textarea>
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" name="date" value="{{ old('date', now()->toDateString()) }}" class="form-control">
+                        </div>
 
-    <button type="submit">Enregistrer</button>
-</form>
+                        <div class="mb-3">
+                            <label class="form-label">Contenu</label>
+                            <textarea name="contenu" rows="6" class="form-control">{{ old('contenu') }}</textarea>
+                        </div>
 
-<h2>Historique</h2>
-@forelse ($entries as $entry)
-    <div style="border:1px solid #ccc; padding:8px; margin-bottom:8px;">
-        <strong>{{ $entry->date->format('d/m/Y') }}</strong>
-        <p>{{ $entry->contenu }}</p>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Enregistrer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-7">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-clock-history me-1"></i>Historique</div>
+                <div class="list-group list-group-flush">
+                    @forelse ($entries as $entry)
+                        <div class="list-group-item">
+                            <strong>{{ $entry->date->format('d/m/Y') }}</strong>
+                            <p class="mb-0 text-muted">{{ $entry->contenu }}</p>
+                        </div>
+                    @empty
+                        <div class="list-group-item text-center text-muted py-4">Aucune entrée pour le moment.</div>
+                    @endforelse
+                </div>
+                @if ($entries->hasPages())
+                    <div class="card-footer bg-white">
+                        {{ $entries->links('pagination::bootstrap-5') }}
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
-@empty
-    <p>Aucune entrée pour le moment.</p>
-@endforelse
+@endsection

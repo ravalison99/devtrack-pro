@@ -22,13 +22,30 @@ class DocumentTest extends TestCase
 
         $response = $this->actingAs($stagiaire)->post('/documents', [
             'titre' => 'Guide de style',
-            'categorie' => 'Technique',
+            'categorie' => 'Compte rendu',
             'fichier' => $fichier,
         ]);
 
         $response->assertRedirect('/documents');
         $this->assertDatabaseHas('documents', ['titre' => 'Guide de style']);
         $this->assertDatabaseHas('document_versions', ['numero_version' => 1]);
+    }
+
+    public function test_une_categorie_hors_liste_est_refusee(): void
+    {
+        Storage::fake('local');
+
+        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
+        $fichier = UploadedFile::fake()->create('guide.pdf', 200);
+
+        $response = $this->actingAs($stagiaire)->post('/documents', [
+            'titre' => 'Guide de style',
+            'categorie' => 'Technique',
+            'fichier' => $fichier,
+        ]);
+
+        $response->assertSessionHasErrors('categorie');
+        $this->assertDatabaseMissing('documents', ['titre' => 'Guide de style']);
     }
 
     public function test_un_deuxieme_depot_du_meme_document_incremente_la_version(): void

@@ -1,41 +1,77 @@
-<h1>Mes documents</h1>
+@extends('layouts.app')
 
-@if (session('success'))
-    <div style="color:green">{{ session('success') }}</div>
-@endif
+@section('title', 'Documents')
 
-@if ($errors->any())
-    <div style="color:red">{{ $errors->first() }}</div>
-@endif
+@section('content')
+    <h1 class="page-title h3 mb-4"><i class="bi bi-file-earmark-text me-2"></i>Mes documents</h1>
 
-<h2>Déposer un document</h2>
-<form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data">
-    @csrf
-    <label>Titre</label>
-    <input type="text" name="titre" value="{{ old('titre') }}">
+    <div class="row g-4">
+        <div class="col-12 col-lg-5">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-cloud-upload me-1"></i>Déposer un document</div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data">
+                        @csrf
 
-    <label>Catégorie</label>
-    <input type="text" name="categorie" value="{{ old('categorie') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Titre</label>
+                            <input type="text" name="titre" value="{{ old('titre') }}" class="form-control">
+                        </div>
 
-    <label>Fichier</label>
-    <input type="file" name="fichier">
+                        <div class="mb-3">
+                            <label class="form-label">Catégorie</label>
+                            <select name="categorie" class="form-select">
+                                <option value="">— Aucune —</option>
+                                @foreach (\App\Models\Document::CATEGORIES as $categorie)
+                                    <option value="{{ $categorie }}" @selected(old('categorie') === $categorie)>{{ $categorie }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-    <button type="submit">Déposer</button>
-</form>
+                        <div class="mb-3">
+                            <label class="form-label">Fichier</label>
+                            <input type="file" name="fichier" class="form-control">
+                        </div>
 
-<h2>Mes documents</h2>
-@forelse ($documents as $document)
-    <div style="border:1px solid #ccc; padding:8px; margin-bottom:8px;">
-        <strong>{{ $document->titre }}</strong> ({{ $document->categorie ?? 'Sans catégorie' }})
-        <ul>
-            @foreach ($document->versions as $version)
-                <li>
-                    Version {{ $version->numero_version }}
-                    <a href="{{ route('documents.download', [$document->id, $version->id]) }}">Télécharger</a>
-                </li>
-            @endforeach
-        </ul>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Déposer
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-7">
+            <div class="card">
+                <div class="card-header"><i class="bi bi-folder2 me-1"></i>Mes documents</div>
+                <div class="list-group list-group-flush">
+                    @forelse ($documents as $document)
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong>{{ $document->titre }}</strong>
+                                <span class="badge bg-light text-dark border">{{ $document->categorie ?? 'Sans catégorie' }}</span>
+                            </div>
+                            <ul class="list-unstyled mb-0 small">
+                                @foreach ($document->versions as $version)
+                                    <li class="d-flex justify-content-between align-items-center py-1">
+                                        <span>Version {{ $version->numero_version }}</span>
+                                        <a href="{{ route('documents.download', [$document->id, $version->id]) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-download me-1"></i>Télécharger
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @empty
+                        <div class="list-group-item text-center text-muted py-4">Aucun document déposé pour le moment.</div>
+                    @endforelse
+                </div>
+                @if ($documents->hasPages())
+                    <div class="card-footer bg-white">
+                        {{ $documents->links('pagination::bootstrap-5') }}
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
-@empty
-    <p>Aucun document déposé pour le moment.</p>
-@endforelse
+@endsection
