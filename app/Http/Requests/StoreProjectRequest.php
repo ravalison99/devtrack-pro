@@ -23,6 +23,8 @@ class StoreProjectRequest extends FormRequest
             'stage_id' => ['required', 'exists:stages,id'],
             'nom' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'document_titre' => ['nullable', 'string', 'max:255'],
+            'fichier' => ['nullable', 'file', 'max:5120', 'mimes:pdf,doc,docx,png,jpg,jpeg'],
         ];
     }
 }

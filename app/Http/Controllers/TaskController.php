@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAttachmentRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskStatusRequest;
+use App\Models\Attachment;
+use App\Models\Project;
 use App\Models\Task;
 use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Services\TaskService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TaskController extends Controller
 {
@@ -77,6 +80,33 @@ class TaskController extends Controller
             ->with('success', 'Tâche créée avec succès.');
     }
 
+    public function storeBatch(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
+
+        $data = $request->validate([
+            'taches' => ['required', 'array', 'min:1'],
+            'taches.*.titre' => ['required', 'string', 'max:255'],
+            'taches.*.priorite' => ['required', 'in:basse,moyenne,haute'],
+        ]);
+
+        $nombreCreees = 0;
+
+        foreach ($data['taches'] as $tache) {
+            $this->taskService->creer([
+                'project_id' => $project->id,
+                'titre' => $tache['titre'],
+                'priorite' => $tache['priorite'],
+            ]);
+
+            $nombreCreees++;
+        }
+
+        return redirect()
+            ->route('projects.show', $project)
+            ->with('success', "{$nombreCreees} tâche(s) créée(s) avec succès.");
+    }
+
     public function updateStatus(UpdateTaskStatusRequest $request, Task $task)
     {
         $nouveauStatut = $request->validated('statut');
@@ -102,5 +132,14 @@ class TaskController extends Controller
         $this->taskService->ajouterPieceJointe($task, $request->file('fichier'));
 
         return back()->with('success', 'Pièce jointe ajoutée.');
+    }
+
+    public function downloadAttachment(Task $task, Attachment $attachment)
+    {
+        $this->authorize('view', $task);
+
+        abort_unless($attachment->task_id === $task->id, 404);
+
+        return Storage::disk('local')->download($attachment->chemin, $attachment->nom_fichier);
     }
 }

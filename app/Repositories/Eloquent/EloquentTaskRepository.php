@@ -21,7 +21,7 @@ class EloquentTaskRepository implements TaskRepositoryInterface
 
     public function findByProject(int $projectId): Collection
     {
-        return Task::where('project_id', $projectId)->get();
+        return Task::with('attachments')->where('project_id', $projectId)->get();
     }
 
     public function findForStagiaire(int $stagiaireId): Collection

@@ -14,7 +14,7 @@
         <div class="col-12 col-lg-8">
             <div class="card">
                 <div class="card-body p-4">
-                    <form method="POST" action="{{ route('projects.store') }}">
+                    <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data">
                         @csrf
 
                         @if ($stage)
@@ -41,6 +41,18 @@
                         <div class="mb-3">
                             <label class="form-label">Description</label>
                             <textarea name="description" rows="4" class="form-control">{{ old('description') }}</textarea>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="mb-3">
+                            <label class="form-label">Titre du document (optionnel)</label>
+                            <input type="text" name="document_titre" value="{{ old('document_titre') }}" class="form-control" placeholder="Ex. Cahier des charges">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Document à déposer (optionnel)</label>
+                            <input type="file" name="fichier" class="form-control">
                         </div>
 
                         <button type="submit" class="btn btn-primary">

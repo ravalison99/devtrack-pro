@@ -19,7 +19,11 @@
                 <tbody>
                     @forelse ($projects as $project)
                         <tr>
-                            <td>{{ $project->nom }}</td>
+                            <td>
+                                <a href="{{ route('projects.show', $project) }}" class="text-decoration-none fw-semibold">
+                                    {{ $project->nom }}
+                                </a>
+                            </td>
                             <td>{{ $project->stage->stagiaire->name }}</td>
                             <td>
                                 @if ($project->archive)

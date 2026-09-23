@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProjectRequest;
 use App\Models\Project;
 use App\Models\Stage;
+use App\Repositories\Contracts\DocumentRepositoryInterface;
 use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Repositories\Contracts\StageRepositoryInterface;
+use App\Repositories\Contracts\TaskRepositoryInterface;
+use App\Services\DocumentService;
 use App\Services\ProjectService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProjectController extends Controller
 {
@@ -18,7 +22,10 @@ class ProjectController extends Controller
     public function __construct(
         protected ProjectService $projectService,
         protected ProjectRepositoryInterface $projects,
-        protected StageRepositoryInterface $stages
+        protected StageRepositoryInterface $stages,
+        protected DocumentService $documentService,
+        protected TaskRepositoryInterface $tasks,
+        protected DocumentRepositoryInterface $documents
     ) {}
 
     public function index()
@@ -60,10 +67,34 @@ class ProjectController extends Controller
     {
         $stage = $this->stages->findById((int) $request->validated('stage_id'));
 
-        $this->projectService->creer($request->validated(), $stage);
+        DB::transaction(function () use ($request, $stage) {
+            $project = $this->projectService->creer($request->validated(), $stage);
+
+            if ($request->hasFile('fichier')) {
+                $titreDocument = $request->validated('document_titre') ?: 'Cahier des charges — '.$project->nom;
+
+                $this->documentService->deposer(
+                    auth()->user(),
+                    $titreDocument,
+                    null,
+                    $request->file('fichier'),
+                    $project
+                );
+            }
+        });
 
         return redirect()
             ->route('projects.index')
             ->with('success', 'Projet créé avec succès.');
+    }
+
+    public function show(Project $project)
+    {
+        $this->authorize('view', $project);
+
+        $tasks = $this->tasks->findByProject($project->id);
+        $documents = $this->documents->findByProject($project->id);
+
+        return view('projects.show', compact('project', 'tasks', 'documents'));
     }
 }

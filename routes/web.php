@@ -33,13 +33,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create.mentor');
     Route::get('/stages/{stage}/projects/create', [ProjectController::class, 'create'])->name('projects.create');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::get('/projects/{project}/details', [ProjectController::class, 'show'])->name('projects.show');
 
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
     Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
     Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
     Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+    Route::post('/projects/{project}/tasks/batch', [TaskController::class, 'storeBatch'])->name('tasks.storeBatch');
     Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
     Route::post('/tasks/{task}/attachments', [TaskController::class, 'storeAttachment'])->name('tasks.attachments.store');
+    Route::get('/tasks/{task}/attachments/{attachment}/download', [TaskController::class, 'downloadAttachment'])->name('tasks.attachments.download');
 
     Route::get('/projects/{project}/kanban', [KanbanController::class, 'show'])->name('kanban.show');
 
@@ -53,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::get('/documents/{documentId}/versions/{versionId}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::get('/projects/{project}/documents', [DocumentController::class, 'byProject'])->name('projects.documents');
 
     Route::get('/notifications', [DashboardController::class, 'notifications'])->name('notifications.index');
     Route::delete('/notifications/{notification}', [DashboardController::class, 'deleteNotification'])->name('notifications.destroy');

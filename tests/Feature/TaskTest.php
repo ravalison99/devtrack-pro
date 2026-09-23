@@ -192,4 +192,49 @@ class TaskTest extends TestCase
 
         $response->assertForbidden();
     }
+
+    public function test_le_stagiaire_du_projet_peut_telecharger_une_piece_jointe_de_sa_tache(): void
+    {
+        Storage::fake('local');
+
+        $project = $this->creerProjet();
+        $stagiaire = $project->stage->stagiaire;
+        $task = Task::create(['project_id' => $project->id, 'titre' => 'Tâche test']);
+        $attachment = $task->attachments()->create(['nom_fichier' => 'rapport.pdf', 'chemin' => 'attachments/rapport.pdf']);
+        Storage::disk('local')->put('attachments/rapport.pdf', 'contenu de test');
+
+        $response = $this->actingAs($stagiaire)->get("/tasks/{$task->id}/attachments/{$attachment->id}/download");
+
+        $response->assertOk();
+    }
+
+    public function test_un_stagiaire_dun_autre_projet_ne_peut_pas_telecharger_la_piece_jointe(): void
+    {
+        Storage::fake('local');
+
+        $projetA = $this->creerProjet();
+        $projetB = $this->creerProjet();
+        $stagiaireB = $projetB->stage->stagiaire;
+        $task = Task::create(['project_id' => $projetA->id, 'titre' => 'Tâche test']);
+        $attachment = $task->attachments()->create(['nom_fichier' => 'rapport.pdf', 'chemin' => 'attachments/rapport.pdf']);
+
+        $response = $this->actingAs($stagiaireB)->get("/tasks/{$task->id}/attachments/{$attachment->id}/download");
+
+        $response->assertForbidden();
+    }
+
+    public function test_une_piece_jointe_qui_nappartient_pas_a_la_tache_est_refusee(): void
+    {
+        Storage::fake('local');
+
+        $project = $this->creerProjet();
+        $mentor = $project->stage->mentor;
+        $taskA = Task::create(['project_id' => $project->id, 'titre' => 'Tâche A']);
+        $taskB = Task::create(['project_id' => $project->id, 'titre' => 'Tâche B']);
+        $attachmentB = $taskB->attachments()->create(['nom_fichier' => 'rapport.pdf', 'chemin' => 'attachments/rapport.pdf']);
+
+        $response = $this->actingAs($mentor)->get("/tasks/{$taskA->id}/attachments/{$attachmentB->id}/download");
+
+        $response->assertNotFound();
+    }
 }

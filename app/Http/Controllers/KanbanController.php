@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Repositories\Contracts\DocumentRepositoryInterface;
 use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Services\TaskService;
@@ -15,7 +16,8 @@ class KanbanController extends Controller
     public function __construct(
         protected TaskRepositoryInterface $tasks,
         protected ProjectRepositoryInterface $projects,
-        protected TaskService $taskService
+        protected TaskService $taskService,
+        protected DocumentRepositoryInterface $documents
     ) {}
 
     public function show(int $projectId)
@@ -38,6 +40,8 @@ class KanbanController extends Controller
             fn (Task $task) => [$task->id => $this->taskService->transitionsAutoriseesPour($task, $utilisateur)]
         );
 
-        return view('kanban.show', compact('project', 'colonnes', 'transitionsParTache'));
+        $documentsDuProjet = $this->documents->findByProject($projectId);
+
+        return view('kanban.show', compact('project', 'colonnes', 'transitionsParTache', 'documentsDuProjet'));
     }
 }

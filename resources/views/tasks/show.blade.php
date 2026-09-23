@@ -45,8 +45,11 @@
                 <div class="card-header"><i class="bi bi-paperclip me-1"></i>Pièces jointes</div>
                 <div class="list-group list-group-flush">
                     @forelse ($task->attachments as $attachment)
-                        <div class="list-group-item">
-                            <i class="bi bi-file-earmark me-1"></i>{{ $attachment->nom_fichier }}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-file-earmark me-1"></i>{{ $attachment->nom_fichier }}</span>
+                            <a href="{{ route('tasks.attachments.download', [$task, $attachment]) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download me-1"></i>Télécharger
+                            </a>
                         </div>
                     @empty
                         <div class="list-group-item text-center text-muted py-4">Aucune pièce jointe pour le moment.</div>

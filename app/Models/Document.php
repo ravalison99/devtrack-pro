@@ -16,6 +16,7 @@ class Document extends Model
 
     protected $fillable = [
         'utilisateur_id',
+        'project_id',
         'titre',
         'categorie',
     ];
@@ -23,6 +24,11 @@ class Document extends Model
     public function utilisateur(): BelongsTo
     {
         return $this->belongsTo(User::class, 'utilisateur_id');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function versions(): HasMany

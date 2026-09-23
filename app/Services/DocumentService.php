@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Document;
 use App\Models\DocumentVersion;
+use App\Models\Project;
 use App\Models\User;
 use App\Repositories\Contracts\DocumentRepositoryInterface;
 use Illuminate\Http\UploadedFile;
@@ -13,13 +14,19 @@ class DocumentService
 {
     public function __construct(protected DocumentRepositoryInterface $documents) {}
 
-    public function deposer(User $utilisateur, string $titre, ?string $categorie, UploadedFile $fichier): Document
+    public function deposer(User $utilisateur, string $titre, ?string $categorie, UploadedFile $fichier, ?Project $project = null): Document
     {
-        $document = $this->documents->create([
+        $data = [
             'utilisateur_id' => $utilisateur->id,
             'titre' => $titre,
             'categorie' => $categorie,
-        ]);
+        ];
+
+        if ($project !== null) {
+            $data['project_id'] = $project->id;
+        }
+
+        $document = $this->documents->create($data);
 
         $this->ajouterVersion($document, $fichier);
 

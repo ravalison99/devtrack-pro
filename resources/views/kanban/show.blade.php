@@ -82,6 +82,51 @@
             </div>
         @endforeach
     </div>
+
+    @php
+        $estMentorDuProjet = auth()->user()->isMentor() && auth()->id() === $project->stage->mentor_id;
+    @endphp
+
+    <div class="card mt-4">
+        <div class="card-header"><i class="bi bi-file-earmark-text me-1"></i>Documents du projet</div>
+        <div class="card-body">
+            @if ($estMentorDuProjet)
+                <form method="POST" action="{{ route('documents.store') }}" enctype="multipart/form-data" class="row g-2 align-items-end mb-4">
+                    @csrf
+                    <input type="hidden" name="project_id" value="{{ $project->id }}">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small">Titre</label>
+                        <input type="text" name="titre" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small">Fichier</label>
+                        <input type="file" name="fichier" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                            <i class="bi bi-cloud-upload me-1"></i>Déposer
+                        </button>
+                    </div>
+                </form>
+            @endif
+
+            <ul class="list-unstyled mb-0">
+                @forelse ($documentsDuProjet as $document)
+                    @php $derniereVersion = $document->versions->sortByDesc('numero_version')->first(); @endphp
+                    <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <span><i class="bi bi-file-earmark me-1"></i>{{ $document->titre }}</span>
+                        @if ($derniereVersion)
+                            <a href="{{ route('documents.download', [$document->id, $derniereVersion->id]) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download me-1"></i>Télécharger
+                            </a>
+                        @endif
+                    </li>
+                @empty
+                    <li class="text-muted small py-2">Aucun document déposé pour ce projet.</li>
+                @endforelse
+            </ul>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')

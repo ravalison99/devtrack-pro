@@ -10,6 +10,7 @@ interface DocumentRepositoryInterface
 {
     public function findById(int $id): ?Document;
     public function findByUtilisateur(int $utilisateurId): Collection;
+    public function findByProject(int $projectId): Collection;
     public function paginateByUtilisateur(int $utilisateurId, int $parPage = 5): LengthAwarePaginator;
     public function create(array $data): Document;
 }

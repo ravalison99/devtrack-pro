@@ -14,6 +14,16 @@ class DocumentPolicy
 
     public function view(User $user, Document $document): bool
     {
-        return $user->isAdmin() || $user->id === $document->utilisateur_id;
+        if ($user->isAdmin() || $user->id === $document->utilisateur_id) {
+            return true;
+        }
+
+        if ($document->project_id !== null) {
+            $stage = $document->project->stage;
+
+            return $user->id === $stage->mentor_id || $user->id === $stage->stagiaire_id;
+        }
+
+        return false;
     }
 }
