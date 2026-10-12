@@ -25,10 +25,16 @@ Toutes les routes sont déclarées dans `routes/web.php`. Il n'y a pas de fichie
 | GET | `/projects/create` | `ProjectController::create` | `projects.create.mentor` | `mentor` uniquement (formulaire sans stage préchargé — l'admin ne peut pas créer de projet) |
 | GET | `/stages/{stage}/projects/create` | `ProjectController::create` | `projects.create` | mentor du stage (`ProjectPolicy::create`) |
 | POST | `/projects` | `ProjectController::store` | `projects.store` | mentor du stage (`StoreProjectRequest`) |
+| GET | `/projects/{project}/edit` | `ProjectController::edit` | `projects.edit` | mentor du stage (`ProjectPolicy::update`) |
+| PUT | `/projects/{project}` | `ProjectController::update` | `projects.update` | mentor du stage (`UpdateProjectRequest` → `ProjectPolicy::update`) |
+| DELETE | `/projects/{project}` | `ProjectController::destroy` | `projects.destroy` | mentor du stage (`ProjectPolicy::delete`) — suppression réelle, les tâches associées sont supprimées en cascade (clé étrangère `cascadeOnDelete`) |
 | GET | `/tasks` | `TaskController::index` | `tasks.index` | filtré par périmètre (admin/mentor/stagiaire) |
 | GET | `/tasks/create` | `TaskController::create` | `tasks.create` | `admin`/`mentor` |
 | GET | `/tasks/{task}` | `TaskController::show` | `tasks.show` | admin, mentor ou stagiaire du projet (`TaskPolicy::view`) |
 | POST | `/tasks` | `TaskController::store` | `tasks.store` | mentor du projet (`StoreTaskRequest`) |
+| GET | `/tasks/{task}/edit` | `TaskController::edit` | `tasks.edit` | mentor du projet (`TaskPolicy::update`) |
+| PUT | `/tasks/{task}` | `TaskController::update` | `tasks.update` | mentor du projet (`UpdateTaskRequest` → `TaskPolicy::update`) |
+| DELETE | `/tasks/{task}` | `TaskController::destroy` | `tasks.destroy` | mentor du projet (`TaskPolicy::delete`) |
 | PATCH | `/tasks/{task}/status` | `TaskController::updateStatus` | `tasks.updateStatus` | selon rôle + transition (`TaskPolicy::updateStatus`) |
 | POST | `/tasks/{task}/attachments` | `TaskController::storeAttachment` | `tasks.attachments.store` | utilisateur authentifié (`StoreAttachmentRequest`) |
 | GET | `/projects/{project}/kanban` | `KanbanController::show` | `kanban.show` | admin, mentor ou stagiaire du projet (`ProjectPolicy::view`) |
@@ -41,6 +47,7 @@ Toutes les routes sont déclarées dans `routes/web.php`. Il n'y a pas de fichie
 | POST | `/documents` | `DocumentController::store` | `documents.store` | utilisateur authentifié (`StoreDocumentRequest` → `DocumentPolicy::create`) |
 | GET | `/documents/{documentId}/versions/{versionId}/download` | `DocumentController::download` | `documents.download` | propriétaire ou admin (`DocumentPolicy::view`) |
 | GET | `/notifications` | `DashboardController::notifications` | `notifications.index` | utilisateur authentifié (portée sur ses propres notifications), paginé (5/page) |
+| DELETE | `/notifications` | `DashboardController::deleteSelectedNotifications` | `notifications.destroySelected` | propriétaire uniquement — suppression groupée (`ids[]`), portée par la relation `notifiable` de l'utilisateur connecté |
 | DELETE | `/notifications/{notification}` | `DashboardController::deleteNotification` | `notifications.destroy` | propriétaire de la notification uniquement |
 | GET | `/users` | `UserController::index` | `users.index` | `admin` (`UserPolicy::viewAny`), triable, recherchable (AJAX) et paginé (5/page) |
 | POST | `/users` | `UserController::store` | `users.store` | `admin` (`UserPolicy::create`) |

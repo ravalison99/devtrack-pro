@@ -17,6 +17,16 @@ class TaskPolicy
             || $user->id === $stagiaireDuProjet;
     }
 
+    public function update(User $user, Task $task): bool
+    {
+        return $user->isMentor() && $user->id === $task->project->stage->mentor_id;
+    }
+
+    public function delete(User $user, Task $task): bool
+    {
+        return $this->update($user, $task);
+    }
+
     public function updateStatus(User $user, Task $task, string $nouveauStatut): bool
     {
         $mentorDuProjet = $task->project->stage->mentor_id;

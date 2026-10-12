@@ -1,5 +1,15 @@
 @php
     $currentUser = auth()->user();
+    $libelleRole = match (true) {
+        $currentUser->isAdmin() => 'Administrateur',
+        $currentUser->isMentor() => 'Mentor',
+        default => 'Stagiaire',
+    };
+    $libelleRoleCourt = match (true) {
+        $currentUser->isAdmin() => 'Admin',
+        $currentUser->isMentor() => 'Mentor',
+        default => 'Stagiaire',
+    };
 @endphp
 
 <nav class="navbar navbar-expand-lg navbar-devtrack navbar-dark sticky-top shadow-sm">
@@ -8,10 +18,16 @@
             <i class="bi bi-kanban-fill"></i> DevTrack Pro
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPrincipale"
-            aria-controls="navPrincipale" aria-expanded="false" aria-label="Basculer la navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="d-flex align-items-center gap-2 order-lg-2">
+            <span class="badge rounded-pill bg-light text-dark text-uppercase d-lg-none" title="Connecté en tant que : {{ $libelleRole }}">
+                {{ $libelleRoleCourt }}
+            </span>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPrincipale"
+                aria-controls="navPrincipale" aria-expanded="false" aria-label="Basculer la navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
 
         <div class="collapse navbar-collapse" id="navPrincipale">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -78,7 +94,7 @@
             <div class="d-flex align-items-center gap-3">
                 <span class="text-white-50 small d-none d-lg-inline">
                     {{ $currentUser->name }}
-                    <span class="badge rounded-pill bg-light text-dark text-uppercase ms-1">{{ $currentUser->role }}</span>
+                    <span class="badge rounded-pill bg-light text-dark text-uppercase ms-1">{{ $libelleRole }}</span>
                 </span>
 
                 <form method="POST" action="{{ route('logout') }}">

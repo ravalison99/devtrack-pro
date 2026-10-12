@@ -11,12 +11,12 @@ class EloquentTaskRepository implements TaskRepositoryInterface
 {
     public function all(): Collection
     {
-        return Task::with(['project', 'comments', 'attachments'])->get();
+        return Task::with(['project.stage', 'comments', 'attachments'])->get();
     }
 
     public function findById(int $id): ?Task
     {
-        return Task::with(['project', 'comments.utilisateur', 'attachments'])->find($id);
+        return Task::with(['project.stage', 'comments.utilisateur', 'attachments'])->find($id);
     }
 
     public function findByProject(int $projectId): Collection
@@ -26,7 +26,7 @@ class EloquentTaskRepository implements TaskRepositoryInterface
 
     public function findForStagiaire(int $stagiaireId): Collection
     {
-        return Task::with(['project', 'comments', 'attachments'])
+        return Task::with(['project.stage', 'comments', 'attachments'])
             ->whereHas('project.stage', function ($query) use ($stagiaireId) {
                 $query->where('stagiaire_id', $stagiaireId);
             })
@@ -35,7 +35,7 @@ class EloquentTaskRepository implements TaskRepositoryInterface
 
     public function findForMentor(int $mentorId): Collection
     {
-        return Task::with(['project', 'comments', 'attachments'])
+        return Task::with(['project.stage', 'comments', 'attachments'])
             ->whereHas('project.stage', function ($query) use ($mentorId) {
                 $query->where('mentor_id', $mentorId);
             })
@@ -44,7 +44,7 @@ class EloquentTaskRepository implements TaskRepositoryInterface
 
     public function paginateAll(int $parPage = 5): LengthAwarePaginator
     {
-        return Task::with(['project', 'comments', 'attachments'])
+        return Task::with(['project.stage', 'comments', 'attachments'])
             ->orderByDesc('id')
             ->paginate($parPage)
             ->withQueryString();
@@ -52,7 +52,7 @@ class EloquentTaskRepository implements TaskRepositoryInterface
 
     public function paginateForStagiaire(int $stagiaireId, int $parPage = 5): LengthAwarePaginator
     {
-        return Task::with(['project', 'comments', 'attachments'])
+        return Task::with(['project.stage', 'comments', 'attachments'])
             ->whereHas('project.stage', function ($query) use ($stagiaireId) {
                 $query->where('stagiaire_id', $stagiaireId);
             })
@@ -63,7 +63,7 @@ class EloquentTaskRepository implements TaskRepositoryInterface
 
     public function paginateForMentor(int $mentorId, int $parPage = 5): LengthAwarePaginator
     {
-        return Task::with(['project', 'comments', 'attachments'])
+        return Task::with(['project.stage', 'comments', 'attachments'])
             ->whereHas('project.stage', function ($query) use ($mentorId) {
                 $query->where('mentor_id', $mentorId);
             })
@@ -77,12 +77,23 @@ class EloquentTaskRepository implements TaskRepositoryInterface
         return Task::create($data);
     }
 
+    public function update(Task $task, array $data): Task
+    {
+        $task->update($data);
+        return $task;
+    }
+
+    public function delete(Task $task): void
+    {
+        $task->delete();
+    }
+
     public function updateStatut(Task $task, string $statut): Task
     {
         $task->update(['statut' => $statut]);
         return $task;
     }
-    
+
     public function countByStatutForStagiaire(int $stagiaireId): array
     {
         return Task::whereHas('project.stage', function ($query) use ($stagiaireId) {

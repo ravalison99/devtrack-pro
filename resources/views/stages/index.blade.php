@@ -74,8 +74,8 @@
             <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
-                        <th>Stagiaire</th>
-                        <th>Email</th>
+                        <th>Stagiaires</th>
+                        <th>Emails</th>
                         <th>Mentor</th>
                         <th>Statut</th>
                         @if (auth()->user()->isAdmin() || auth()->user()->isMentor())

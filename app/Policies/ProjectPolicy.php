@@ -18,6 +18,11 @@ class ProjectPolicy
         return $user->isMentor() && $user->id === $project->stage->mentor_id;
     }
 
+    public function delete(User $user, Project $project): bool
+    {
+        return $this->update($user, $project);
+    }
+
     public function view(User $user, Project $project): bool
     {
         $stage = $project->stage;

@@ -31,6 +31,16 @@ class TaskService
         return $task;
     }
 
+    public function modifier(Task $task, array $data): Task
+    {
+        return $this->tasks->update($task, $data);
+    }
+
+    public function supprimer(Task $task): void
+    {
+        $this->tasks->delete($task);
+    }
+
     public function transitionsAutoriseesPour(Task $task, User $user): array
     {
         $transitions = self::TRANSITIONS_AUTORISEES[$task->statut] ?? [];

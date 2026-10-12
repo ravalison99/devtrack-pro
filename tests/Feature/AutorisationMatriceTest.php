@@ -99,4 +99,24 @@ class AutorisationMatriceTest extends TestCase
         $this->actingAs($mentor)->get('/users')->assertForbidden();
         $this->actingAs($mentor)->get('/stages/create')->assertForbidden();
     }
+
+    public function test_un_mentor_hors_perimetre_ne_peut_pas_modifier_ou_supprimer_un_projet_par_id(): void
+    {
+        $ressourceA = $this->creerProjetAvecTache();
+        $ressourceB = $this->creerProjetAvecTache();
+
+        $this->actingAs($ressourceA['mentor'])->get("/projects/{$ressourceB['project']->id}/edit")->assertForbidden();
+        $this->actingAs($ressourceA['mentor'])->put("/projects/{$ressourceB['project']->id}", ['nom' => 'Intrusion'])->assertForbidden();
+        $this->actingAs($ressourceA['mentor'])->delete("/projects/{$ressourceB['project']->id}")->assertForbidden();
+    }
+
+    public function test_un_mentor_hors_perimetre_ne_peut_pas_modifier_ou_supprimer_une_tache_par_id(): void
+    {
+        $ressourceA = $this->creerProjetAvecTache();
+        $ressourceB = $this->creerProjetAvecTache();
+
+        $this->actingAs($ressourceA['mentor'])->get("/tasks/{$ressourceB['task']->id}/edit")->assertForbidden();
+        $this->actingAs($ressourceA['mentor'])->put("/tasks/{$ressourceB['task']->id}", ['titre' => 'Intrusion', 'priorite' => 'basse'])->assertForbidden();
+        $this->actingAs($ressourceA['mentor'])->delete("/tasks/{$ressourceB['task']->id}")->assertForbidden();
+    }
 }

@@ -23,6 +23,16 @@ class ProjectService
         return $this->projects->update($project, ['archive' => true]);
     }
 
+    public function modifier(Project $project, array $data): Project
+    {
+        return $this->projects->update($project, $data);
+    }
+
+    public function supprimer(Project $project): void
+    {
+        $this->projects->delete($project);
+    }
+
     protected function verifierStageActif(Stage $stage): void
     {
         if ($stage->statut !== 'en_cours' && $stage->statut !== 'planifie') {

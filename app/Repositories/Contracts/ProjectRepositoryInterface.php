@@ -18,5 +18,6 @@ interface ProjectRepositoryInterface
     public function paginateForMentor(int $mentorId, int $parPage = 5): LengthAwarePaginator;
     public function create(array $data): Project;
     public function update(Project $project, array $data): Project;
+    public function delete(Project $project): void;
     public function count(): int;
 }

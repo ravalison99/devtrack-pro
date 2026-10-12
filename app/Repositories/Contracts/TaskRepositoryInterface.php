@@ -17,6 +17,8 @@ interface TaskRepositoryInterface
     public function paginateForStagiaire(int $stagiaireId, int $parPage = 5): LengthAwarePaginator;
     public function paginateForMentor(int $mentorId, int $parPage = 5): LengthAwarePaginator;
     public function create(array $data): Task;
+    public function update(Task $task, array $data): Task;
+    public function delete(Task $task): void;
     public function updateStatut(Task $task, string $statut): Task;
     public function countByStatutForStagiaire(int $stagiaireId): array;
     public function count(): int;

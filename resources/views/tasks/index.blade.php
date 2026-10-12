@@ -22,6 +22,7 @@
                         <th>Priorité</th>
                         <th>Statut</th>
                         <th style="min-width:180px">Changer le statut</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -31,6 +32,7 @@
                             $couleursStatutTache = ['a_faire' => 'bg-secondary', 'en_cours' => 'bg-warning text-dark', 'en_revue' => 'bg-info text-dark', 'termine' => 'bg-success'];
                             $libellesStatut = ['a_faire' => 'À faire', 'en_cours' => 'En cours', 'en_revue' => 'En revue', 'termine' => 'Terminé'];
                             $transitions = $transitionsParTache[$task->id] ?? [];
+                            $estMentorDuProjet = auth()->user()->isMentor() && auth()->id() === $task->project->stage->mentor_id;
                         @endphp
                         <tr>
                             <td>
@@ -57,10 +59,26 @@
                                     <span class="text-muted small">Aucune action possible</span>
                                 @endif
                             </td>
+                            <td class="text-end">
+                                @if ($estMentorDuProjet)
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a href="{{ route('tasks.edit', $task) }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="POST" action="{{ route('tasks.destroy', $task) }}" onsubmit="return confirm('Supprimer cette tâche ?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">Aucune tâche pour le moment.</td>
+                            <td colspan="6" class="text-center text-muted py-4">Aucune tâche pour le moment.</td>
                         </tr>
                     @endforelse
                 </tbody>

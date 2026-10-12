@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAttachmentRequest;
 use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Requests\UpdateTaskStatusRequest;
 use App\Models\Attachment;
 use App\Models\Project;
@@ -105,6 +106,33 @@ class TaskController extends Controller
         return redirect()
             ->route('projects.show', $project)
             ->with('success', "{$nombreCreees} tâche(s) créée(s) avec succès.");
+    }
+
+    public function edit(Task $task)
+    {
+        $this->authorize('update', $task);
+
+        return view('tasks.edit', compact('task'));
+    }
+
+    public function update(UpdateTaskRequest $request, Task $task)
+    {
+        $this->taskService->modifier($task, $request->validated());
+
+        return redirect()
+            ->route('tasks.index')
+            ->with('success', 'Tâche modifiée avec succès.');
+    }
+
+    public function destroy(Task $task)
+    {
+        $this->authorize('delete', $task);
+
+        $this->taskService->supprimer($task);
+
+        return redirect()
+            ->route('tasks.index')
+            ->with('success', 'Tâche supprimée avec succès.');
     }
 
     public function updateStatus(UpdateTaskStatusRequest $request, Task $task)

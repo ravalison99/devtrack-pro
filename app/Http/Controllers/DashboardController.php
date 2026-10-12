@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\DashboardService;
+use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 
 class DashboardController extends Controller
@@ -35,5 +36,19 @@ class DashboardController extends Controller
         $notification->delete();
 
         return back()->with('success', 'Notification supprimée.');
+    }
+
+    public function deleteSelectedNotifications(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['string'],
+        ], [
+            'ids.required' => 'Sélectionnez au moins une notification.',
+        ]);
+
+        $nombreSupprimees = auth()->user()->notifications()->whereIn('id', $data['ids'])->delete();
+
+        return back()->with('success', "{$nombreSupprimees} notification(s) supprimée(s).");
     }
 }

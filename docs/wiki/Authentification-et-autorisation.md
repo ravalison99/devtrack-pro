@@ -57,8 +57,11 @@ Laravel 12 résout automatiquement les policies par **convention de nommage** en
 | | `delete` | `admin` uniquement (le contrôle du statut éligible — `termine`/`annule` — est une règle métier dans `StageService`, pas dans la policy) |
 | `ProjectPolicy` | `create($user, $stage)` | le `mentor` **du stage concerné** uniquement |
 | | `update` | le `mentor` du stage auquel appartient le projet |
+| | `delete` | le `mentor` du stage auquel appartient le projet (même règle que `update`) — suppression réelle, jamais l'admin |
 | | `view` | `admin`, le mentor du stage, ou le stagiaire du stage |
 | `TaskPolicy` | `view` | `admin`, le mentor du projet, ou le stagiaire du projet |
+| | `update` | le `mentor` du projet (édition des champs titre/description/priorité/échéance — le statut reste géré exclusivement via `updateStatus`) |
+| | `delete` | le `mentor` du projet (même règle que `update`) |
 | | `updateStatus($user, $task, $nouveauStatut)` | `admin`/mentor du projet : tout changement autorisé ; stagiaire du projet : tout changement **sauf** passage à `termine` ; toute autre personne : refusé |
 | `WeeklyReportPolicy` | `create` | `stagiaire` uniquement |
 | | `view` | `admin`, l'auteur du rapport, ou le mentor du stage de l'auteur |
@@ -87,9 +90,12 @@ Deux mécanismes coexistent selon que l'information nécessaire est disponible a
    - `StageController::destroy()` → `authorize('delete', $stage)`
    - `StageController::updateStatus()` (via `UpdateStageStatusRequest::authorize()`) → `can('updateStatus', $stage)`
    - `ProjectController::create()` → `authorize('create', [Project::class, $stage])` (formulaire lié à un stage précis) ; le formulaire sans stage préchargé (`GET /projects/create`, raccourci depuis le tableau de bord mentor) est réservé aux rôles `admin`/`mentor` par un contrôle direct (`abort_unless`), en amont du choix du stage
+   - `ProjectController::edit()` → `authorize('update', $project)` ; `update()` délègue à `UpdateProjectRequest::authorize()` ; `destroy()` → `authorize('delete', $project)`
    - `TaskController::show()` → `authorize('view', $task)`
    - `TaskController::create()` réservé aux rôles `admin`/`mentor` (`abort_unless`), puis `authorize('update', $project)` si un projet est préchargé
+   - `TaskController::edit()` → `authorize('update', $task)` ; `update()` délègue à `UpdateTaskRequest::authorize()` ; `destroy()` → `authorize('delete', $task)`
    - `TaskController::updateStatus()` → `can('updateStatus', [$task, $nouveauStatut])`, avec réponse JSON 403 si `wantsJson()`
+   - `DashboardController::deleteSelectedNotifications()` → aucune vérification manuelle nécessaire : `auth()->user()->notifications()` est une relation Eloquent déjà scopée au `notifiable` connecté, donc `whereIn('id', $ids)->delete()` ne peut structurellement jamais atteindre la notification d'un autre utilisateur, même si des identifiants étrangers sont injectés dans `ids[]`
    - `KanbanController::show()` → `authorize('view', $project)`
    - `DocumentController::download()` / `WeeklyReportController::download()` → `can('view', $document|$report)`
 
@@ -135,14 +141,18 @@ Vue d'ensemble ressource × action × rôle, telle qu'implémentée (pas un idé
 | Stages | Supprimer (soft delete) | Oui, si `termine`/`annule` | Non | Non |
 | Projets | Consulter la liste | Tous | Les siens | Ceux de son stage |
 | Projets | Créer | **Non** | Oui (sur ses stages) | Non |
+| Projets | Modifier | Non | Oui (les siens) | Non |
+| Projets | Supprimer (réel, cascade sur les tâches) | Non | Oui (les siens) | Non |
 | Tâches | Consulter la liste / le détail | Toutes | Les siennes | Les siennes |
 | Tâches | Créer | Oui | Oui (sur ses projets) | Non |
+| Tâches | Modifier (titre/description/priorité/échéance) | Non | Oui (les siennes) | Non |
+| Tâches | Supprimer | Non | Oui (les siennes) | Non |
 | Tâches | Changer le statut | Toute transition | Toute transition (ses tâches) | Toute transition sauf → `termine` |
 | Kanban | Consulter | Tout projet | Ses projets | Ses projets |
 | Documents | Consulter / déposer | Les siens (+ tout document en admin sur `view`) | Les siens | Les siens |
 | Rapports hebdomadaires | Soumettre | Non | Non | Oui (1 par semaine, bloqué au-delà) |
 | Rapports hebdomadaires | Télécharger | Tout rapport | Ceux de ses stagiaires | Les siens |
-| Notifications | Consulter / supprimer | Les siennes | Les siennes | Les siennes |
+| Notifications | Consulter / supprimer (unitaire ou groupée) | Les siennes | Les siennes | Les siennes |
 | Journal | Consulter / écrire | — (non concerné) | — (non concerné) | Le sien |
 
 « Non concerné » signifie que la ressource n'a de sens que pour ce rôle (ex. seul un stagiaire tient un journal).

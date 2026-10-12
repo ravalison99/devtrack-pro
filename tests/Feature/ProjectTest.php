@@ -156,4 +156,92 @@ class ProjectTest extends TestCase
         $this->actingAs($admin)->get('/projects/create')->assertForbidden();
         $this->actingAs($admin)->get("/stages/{$stage->id}/projects/create")->assertForbidden();
     }
+
+    public function test_le_mentor_du_stage_peut_modifier_son_projet(): void
+    {
+        $mentor = User::factory()->create(['role' => 'mentor']);
+        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
+        $stage = $this->creerStage($mentor, $stagiaire);
+        $project = Project::create(['stage_id' => $stage->id, 'nom' => 'Ancien nom']);
+
+        $response = $this->actingAs($mentor)->put("/projects/{$project->id}", [
+            'nom' => 'Nouveau nom',
+            'description' => 'Nouvelle description',
+        ]);
+
+        $response->assertRedirect('/projects');
+        $this->assertDatabaseHas('projects', ['id' => $project->id, 'nom' => 'Nouveau nom']);
+    }
+
+    public function test_un_autre_mentor_ne_peut_pas_modifier_le_projet(): void
+    {
+        $mentor = User::factory()->create(['role' => 'mentor']);
+        $autreMentor = User::factory()->create(['role' => 'mentor']);
+        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
+        $stage = $this->creerStage($mentor, $stagiaire);
+        $project = Project::create(['stage_id' => $stage->id, 'nom' => 'Projet']);
+
+        $response = $this->actingAs($autreMentor)->put("/projects/{$project->id}", [
+            'nom' => 'Tentative',
+        ]);
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('projects', ['id' => $project->id, 'nom' => 'Projet']);
+    }
+
+    public function test_le_mentor_du_stage_peut_supprimer_son_projet(): void
+    {
+        $mentor = User::factory()->create(['role' => 'mentor']);
+        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
+        $stage = $this->creerStage($mentor, $stagiaire);
+        $project = Project::create(['stage_id' => $stage->id, 'nom' => 'Projet']);
+
+        $response = $this->actingAs($mentor)->delete("/projects/{$project->id}");
+
+        $response->assertRedirect('/projects');
+        $this->assertDatabaseMissing('projects', ['id' => $project->id]);
+    }
+
+    public function test_la_suppression_dun_projet_supprime_ses_taches_en_cascade(): void
+    {
+        $mentor = User::factory()->create(['role' => 'mentor']);
+        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
+        $stage = $this->creerStage($mentor, $stagiaire);
+        $project = Project::create(['stage_id' => $stage->id, 'nom' => 'Projet']);
+        $tache1 = \App\Models\Task::create(['project_id' => $project->id, 'titre' => 'Tâche 1']);
+        $tache2 = \App\Models\Task::create(['project_id' => $project->id, 'titre' => 'Tâche 2']);
+
+        $this->actingAs($mentor)->delete("/projects/{$project->id}");
+
+        $this->assertDatabaseMissing('projects', ['id' => $project->id]);
+        $this->assertDatabaseMissing('tasks', ['id' => $tache1->id]);
+        $this->assertDatabaseMissing('tasks', ['id' => $tache2->id]);
+    }
+
+    public function test_un_administrateur_ne_peut_pas_supprimer_un_projet(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $mentor = User::factory()->create(['role' => 'mentor']);
+        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
+        $stage = $this->creerStage($mentor, $stagiaire);
+        $project = Project::create(['stage_id' => $stage->id, 'nom' => 'Projet']);
+
+        $response = $this->actingAs($admin)->delete("/projects/{$project->id}");
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('projects', ['id' => $project->id]);
+    }
+
+    public function test_un_stagiaire_ne_peut_pas_supprimer_un_projet(): void
+    {
+        $mentor = User::factory()->create(['role' => 'mentor']);
+        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
+        $stage = $this->creerStage($mentor, $stagiaire);
+        $project = Project::create(['stage_id' => $stage->id, 'nom' => 'Projet']);
+
+        $response = $this->actingAs($stagiaire)->delete("/projects/{$project->id}");
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('projects', ['id' => $project->id]);
+    }
 }

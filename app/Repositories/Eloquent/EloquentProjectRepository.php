@@ -80,6 +80,11 @@ class EloquentProjectRepository implements ProjectRepositoryInterface
         return $project;
     }
 
+    public function delete(Project $project): void
+    {
+        $project->delete();
+    }
+
     public function count(): int
     {
         return Project::count();

@@ -179,4 +179,49 @@ class NotificationTest extends TestCase
         $response->assertForbidden();
         $this->assertDatabaseHas('notifications', ['id' => $notification->id]);
     }
+
+    public function test_un_utilisateur_peut_supprimer_plusieurs_notifications_en_une_fois(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $admin2 = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->post('/users', [
+            'name' => 'Membre 1', 'email' => 'membre1@example.com', 'password' => 'motdepasse123', 'role' => 'stagiaire',
+        ]);
+        $this->actingAs($admin)->post('/users', [
+            'name' => 'Membre 2', 'email' => 'membre2@example.com', 'password' => 'motdepasse123', 'role' => 'stagiaire',
+        ]);
+
+        $ids = $admin2->notifications()->pluck('id');
+        $this->assertCount(2, $ids);
+
+        $response = $this->actingAs($admin2)->delete('/notifications', ['ids' => $ids->toArray()]);
+
+        $response->assertRedirect();
+        $this->assertSame(0, $admin2->notifications()->count());
+        $this->assertSame(2, $admin->notifications()->count());
+    }
+
+    public function test_la_suppression_groupee_ne_supprime_pas_les_notifications_dun_autre_utilisateur(): void
+    {
+        Storage::fake('local');
+
+        $mentorA = User::factory()->create(['role' => 'mentor']);
+        $stagiaireA = User::factory()->create(['role' => 'stagiaire']);
+        Stage::create([
+            'stagiaire_id' => $stagiaireA->id,
+            'mentor_id' => $mentorA->id,
+            'date_debut' => '2026-01-01',
+            'date_fin' => '2026-03-01',
+        ]);
+        $this->actingAs($stagiaireA)->post('/reports', ['semaine' => 3, 'contenu' => 'Contenu.']);
+        $notificationDeA = $mentorA->notifications()->first();
+
+        $intrus = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($intrus)->delete('/notifications', ['ids' => [$notificationDeA->id]]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('notifications', ['id' => $notificationDeA->id]);
+    }
 }

@@ -237,4 +237,70 @@ class TaskTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_le_mentor_du_projet_peut_modifier_une_tache(): void
+    {
+        $project = $this->creerProjet();
+        $mentor = $project->stage->mentor;
+        $task = Task::create(['project_id' => $project->id, 'titre' => 'Ancien titre', 'priorite' => 'basse']);
+
+        $response = $this->actingAs($mentor)->put("/tasks/{$task->id}", [
+            'titre' => 'Nouveau titre',
+            'priorite' => 'haute',
+        ]);
+
+        $response->assertRedirect('/tasks');
+        $this->assertDatabaseHas('tasks', ['id' => $task->id, 'titre' => 'Nouveau titre', 'priorite' => 'haute']);
+    }
+
+    public function test_un_autre_mentor_ne_peut_pas_modifier_une_tache(): void
+    {
+        $project = $this->creerProjet();
+        $autreMentor = User::factory()->create(['role' => 'mentor']);
+        $task = Task::create(['project_id' => $project->id, 'titre' => 'Titre', 'priorite' => 'basse']);
+
+        $response = $this->actingAs($autreMentor)->put("/tasks/{$task->id}", [
+            'titre' => 'Tentative',
+            'priorite' => 'haute',
+        ]);
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('tasks', ['id' => $task->id, 'titre' => 'Titre']);
+    }
+
+    public function test_le_mentor_du_projet_peut_supprimer_une_tache(): void
+    {
+        $project = $this->creerProjet();
+        $mentor = $project->stage->mentor;
+        $task = Task::create(['project_id' => $project->id, 'titre' => 'Tâche à supprimer']);
+
+        $response = $this->actingAs($mentor)->delete("/tasks/{$task->id}");
+
+        $response->assertRedirect('/tasks');
+        $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
+    }
+
+    public function test_un_stagiaire_ne_peut_pas_supprimer_une_tache(): void
+    {
+        $project = $this->creerProjet();
+        $stagiaire = $project->stage->stagiaire;
+        $task = Task::create(['project_id' => $project->id, 'titre' => 'Tâche']);
+
+        $response = $this->actingAs($stagiaire)->delete("/tasks/{$task->id}");
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('tasks', ['id' => $task->id]);
+    }
+
+    public function test_un_administrateur_ne_peut_pas_supprimer_une_tache(): void
+    {
+        $project = $this->creerProjet();
+        $admin = User::factory()->create(['role' => 'admin']);
+        $task = Task::create(['project_id' => $project->id, 'titre' => 'Tâche']);
+
+        $response = $this->actingAs($admin)->delete("/tasks/{$task->id}");
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('tasks', ['id' => $task->id]);
+    }
 }

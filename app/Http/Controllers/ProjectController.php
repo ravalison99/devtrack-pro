@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use App\Models\Stage;
 use App\Repositories\Contracts\DocumentRepositoryInterface;
@@ -96,5 +97,32 @@ class ProjectController extends Controller
         $documents = $this->documents->findByProject($project->id);
 
         return view('projects.show', compact('project', 'tasks', 'documents'));
+    }
+
+    public function edit(Project $project)
+    {
+        $this->authorize('update', $project);
+
+        return view('projects.edit', compact('project'));
+    }
+
+    public function update(UpdateProjectRequest $request, Project $project)
+    {
+        $this->projectService->modifier($project, $request->validated());
+
+        return redirect()
+            ->route('projects.index')
+            ->with('success', 'Projet modifié avec succès.');
+    }
+
+    public function destroy(Project $project)
+    {
+        $this->authorize('delete', $project);
+
+        $this->projectService->supprimer($project);
+
+        return redirect()
+            ->route('projects.index')
+            ->with('success', 'Projet et tâches associées supprimés avec succès.');
     }
 }
