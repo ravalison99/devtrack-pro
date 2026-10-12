@@ -13,20 +13,9 @@
                     <form method="POST" action="{{ route('users.store') }}">
                         @csrf
 
-                        <div class="mb-3">
-                            <label class="form-label">Nom</label>
-                            <input type="text" name="name" value="{{ old('name') }}" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" name="email" value="{{ old('email') }}" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Mot de passe</label>
-                            <input type="password" name="password" class="form-control">
-                        </div>
+                        <x-champ label="Nom" name="name" :value="old('name')" />
+                        <x-champ label="Email" name="email" type="email" :value="old('email')" />
+                        <x-champ label="Mot de passe" name="password" type="password" />
 
                         <div class="mb-3">
                             <label class="form-label">Rôle</label>

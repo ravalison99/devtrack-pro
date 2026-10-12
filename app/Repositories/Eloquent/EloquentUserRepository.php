@@ -14,11 +14,6 @@ class EloquentUserRepository implements UserRepositoryInterface
         return User::all();
     }
 
-    public function findById(int $id): ?User
-    {
-        return User::find($id);
-    }
-
     public function findByEmail(string $email): ?User
     {
         return User::where('email', $email)->first();
@@ -33,11 +28,6 @@ class EloquentUserRepository implements UserRepositoryInterface
     {
         $user->update($data);
         return $user;
-    }
-
-    public function delete(User $user): bool
-    {
-        return $user->delete();
     }
 
     public function countByRole(string $role): int

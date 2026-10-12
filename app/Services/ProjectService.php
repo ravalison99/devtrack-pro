@@ -18,11 +18,6 @@ class ProjectService
         return $this->projects->create($data);
     }
 
-    public function archiver(Project $project): Project
-    {
-        return $this->projects->update($project, ['archive' => true]);
-    }
-
     protected function verifierStageActif(Stage $stage): void
     {
         if ($stage->statut !== 'en_cours' && $stage->statut !== 'planifie') {

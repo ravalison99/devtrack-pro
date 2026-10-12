@@ -13,15 +13,8 @@
                     <form method="POST" action="{{ route('journal.store') }}">
                         @csrf
 
-                        <div class="mb-3">
-                            <label class="form-label">Date</label>
-                            <input type="date" name="date" value="{{ old('date', now()->toDateString()) }}" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Contenu</label>
-                            <textarea name="contenu" rows="6" class="form-control">{{ old('contenu') }}</textarea>
-                        </div>
+                        <x-champ label="Date" name="date" type="date" :value="old('date', now()->toDateString())" />
+                        <x-champ label="Contenu" name="contenu" type="textarea" :value="old('contenu')" />
 
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-1"></i>Enregistrer

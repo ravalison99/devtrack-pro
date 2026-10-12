@@ -58,4 +58,19 @@ class AuthTest extends TestCase
         $response->assertSessionHasErrors('email');
         $this->assertGuest();
     }
+
+    public function test_la_page_de_connexion_est_accessible(): void
+    {
+        $this->get('/login')->assertOk();
+    }
+
+    public function test_un_utilisateur_connecte_peut_se_deconnecter(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/logout');
+
+        $response->assertRedirect('/login');
+        $this->assertGuest();
+    }
 }

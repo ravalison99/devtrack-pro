@@ -21,12 +21,7 @@ class UserPolicy
         return $currentUser->isAdmin() || $currentUser->id === $target->id;
     }
 
-    public function updateRole(User $currentUser): bool
-    {
-        return $currentUser->isAdmin();
-    }
-
-    public function delete(User $currentUser, User $cible): bool
+    public function delete(User $currentUser): bool
     {
         return $currentUser->isAdmin();
     }

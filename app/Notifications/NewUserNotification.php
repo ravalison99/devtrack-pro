@@ -3,27 +3,19 @@
 namespace App\Notifications;
 
 use App\Models\User;
-use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\MailMessage;
 
-class NewUserNotification extends Notification
+class NewUserNotification extends BaseNotification
 {
-    use Queueable;
-
     public function __construct(protected User $utilisateur) {}
 
-    public function via(object $notifiable): array
+    protected function contenuMail(): array
     {
-        return ['mail', 'database'];
-    }
-
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->subject('Nouvel utilisateur créé')
-            ->line("Un nouvel utilisateur « {$this->utilisateur->name} » ({$this->utilisateur->role}) a été créé.")
-            ->action('Voir les utilisateurs', url('/users'));
+        return [
+            'Nouvel utilisateur créé',
+            "Un nouvel utilisateur « {$this->utilisateur->name} » ({$this->utilisateur->role}) a été créé.",
+            'Voir les utilisateurs',
+            url('/users'),
+        ];
     }
 
     public function toArray(object $notifiable): array

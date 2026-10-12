@@ -12,7 +12,6 @@ interface StageRepositoryInterface
     public function findById(int $id): ?Stage;
     public function findByStagiaire(int $stagiaireId): ?Stage;
     public function findByMentor(int $mentorId): Collection;
-    public function allForStagiaire(int $stagiaireId): Collection;
     public function findActifs(): Collection;
     public function paginateAll(int $parPage = 5): LengthAwarePaginator;
     public function paginateForMentor(int $mentorId, array $filtres = [], int $parPage = 5): LengthAwarePaginator;

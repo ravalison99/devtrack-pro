@@ -57,7 +57,7 @@ class StageController extends Controller
 
     public function store(StoreStageRequest $request)
     {
-        $stage = $this->stageService->creer($request->validated());
+        $this->stageService->creer($request->validated());
 
         return redirect()
             ->route('stages.index')
