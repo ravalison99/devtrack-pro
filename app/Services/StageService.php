@@ -55,11 +55,6 @@ class StageService
         return self::TRANSITIONS_AUTORISEES[$stage->statut] ?? [];
     }
 
-    public function estSupprimable(Stage $stage): bool
-    {
-        return in_array($stage->statut, self::STATUTS_SUPPRIMABLES, true);
-    }
-
     public function supprimer(Stage $stage): bool
     {
         if (! in_array($stage->statut, self::STATUTS_SUPPRIMABLES, true)) {

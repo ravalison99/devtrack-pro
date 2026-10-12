@@ -17,20 +17,9 @@
                         @csrf
                         @method('PUT')
 
-                        <div class="mb-3">
-                            <label class="form-label">Nom</label>
-                            <input type="text" name="name" value="{{ old('name', $user->name) }}" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" name="email" value="{{ old('email', $user->email) }}" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Nouveau mot de passe</label>
-                            <input type="password" name="password" class="form-control" placeholder="Laisser vide pour ne pas changer">
-                        </div>
+                        <x-champ label="Nom" name="name" :value="old('name', $user->name)" />
+                        <x-champ label="Email" name="email" type="email" :value="old('email', $user->email)" />
+                        <x-champ label="Nouveau mot de passe" name="password" type="password" placeholder="Laisser vide pour ne pas changer" />
 
                         <div class="mb-3">
                             <label class="form-label">Rôle</label>

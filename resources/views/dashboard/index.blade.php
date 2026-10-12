@@ -45,11 +45,13 @@
         <div class="alert alert-warning">Aucun stage actif pour le moment.</div>
     @endif
 
+    @php $tuiles = []; @endphp
+
     <div class="row g-3">
         {{-- Admin --}}
         @if (isset($indicateurs['total_utilisateurs']))
             @php
-                $tuilesAdmin = [
+                $tuiles = [
                     ['label' => 'Utilisateurs', 'valeur' => $indicateurs['total_utilisateurs'], 'couleur' => '#4f46e5', 'icone' => 'bi-people'],
                     ['label' => 'Stagiaires', 'valeur' => $indicateurs['total_stagiaires'], 'couleur' => '#0284c7', 'icone' => 'bi-person'],
                     ['label' => 'Mentors', 'valeur' => $indicateurs['total_mentors'], 'couleur' => '#0d9488', 'icone' => 'bi-person-badge'],
@@ -61,26 +63,12 @@
                     ['label' => 'Tâches', 'valeur' => $indicateurs['total_taches'], 'couleur' => '#0284c7', 'icone' => 'bi-list-check'],
                 ];
             @endphp
-
-            @foreach ($tuilesAdmin as $tuile)
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card" style="background:{{ $tuile['couleur'] }};">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="stat-label">{{ $tuile['label'] }}</div>
-                                <div class="stat-value">{{ $tuile['valeur'] }}</div>
-                            </div>
-                            <i class="bi {{ $tuile['icone'] }} fs-4 opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
         @endif
 
         {{-- Mentor --}}
         @if (isset($indicateurs['mes_stagiaires']))
             @php
-                $tuilesMentor = [
+                $tuiles = [
                     ['label' => 'Stagiaires encadrés', 'valeur' => $indicateurs['mes_stagiaires'], 'couleur' => '#4f46e5', 'icone' => 'bi-people'],
                     ['label' => 'Mes stages', 'valeur' => $indicateurs['mes_stages'], 'couleur' => '#6b7280', 'icone' => 'bi-mortarboard'],
                     ['label' => 'Stages en cours', 'valeur' => $indicateurs['stages_en_cours'], 'couleur' => '#4338ca', 'icone' => 'bi-mortarboard-fill'],
@@ -92,26 +80,12 @@
                     ['label' => 'rapports reçus', 'valeur' => $indicateurs['rapports_recus'], 'couleur' => '#0d9488', 'icone' => 'bi-file-earmark-bar-graph'],
                 ];
             @endphp
-
-            @foreach ($tuilesMentor as $tuile)
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card" style="background:{{ $tuile['couleur'] }};">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="stat-label">{{ $tuile['label'] }}</div>
-                                <div class="stat-value">{{ $tuile['valeur'] }}</div>
-                            </div>
-                            <i class="bi {{ $tuile['icone'] }} fs-4 opacity-75"></i>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
         @endif
 
         {{-- Stagiaire --}}
         @if (isset($indicateurs['taches_a_faire']))
             @php
-                $tuilesTaches = [
+                $tuiles = [
                     ['label' => 'Mes projets', 'valeur' => $indicateurs['mes_projets'], 'couleur' => '#4f46e5', 'icone' => 'bi-folder2-open'],
                     ['label' => 'À faire', 'valeur' => $indicateurs['taches_a_faire'], 'couleur' => '#6b7280', 'icone' => 'bi-circle'],
                     ['label' => 'En cours', 'valeur' => $indicateurs['taches_en_cours'], 'couleur' => '#d97706', 'icone' => 'bi-arrow-repeat'],
@@ -120,20 +94,20 @@
                     ['label' => 'Mes documents', 'valeur' => $indicateurs['mes_documents'], 'couleur' => '#0d9488', 'icone' => 'bi-file-earmark-text'],
                 ];
             @endphp
+        @endif
 
-            @foreach ($tuilesTaches as $tuile)
-                <div class="col-6 col-lg-3">
-                    <div class="stat-card" style="background:{{ $tuile['couleur'] }};">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <div class="stat-label">{{ $tuile['label'] }}</div>
-                                <div class="stat-value">{{ $tuile['valeur'] }}</div>
-                            </div>
-                            <i class="bi {{ $tuile['icone'] }} fs-4 opacity-75"></i>
+        @foreach ($tuiles as $tuile)
+            <div class="col-6 col-lg-3">
+                <div class="stat-card" style="background:{{ $tuile['couleur'] }};">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-label">{{ $tuile['label'] }}</div>
+                            <div class="stat-value">{{ $tuile['valeur'] }}</div>
                         </div>
+                        <i class="bi {{ $tuile['icone'] }} fs-4 opacity-75"></i>
                     </div>
                 </div>
-            @endforeach
-        @endif
+            </div>
+        @endforeach
     </div>
 @endsection

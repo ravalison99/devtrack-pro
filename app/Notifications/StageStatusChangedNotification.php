@@ -3,31 +3,23 @@
 namespace App\Notifications;
 
 use App\Models\Stage;
-use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\MailMessage;
 
-class StageStatusChangedNotification extends Notification
+class StageStatusChangedNotification extends BaseNotification
 {
-    use Queueable;
-
     public function __construct(
         protected Stage $stage,
         protected string $ancienStatut,
         protected string $nouveauStatut
     ) {}
 
-    public function via(object $notifiable): array
+    protected function contenuMail(): array
     {
-        return ['mail', 'database'];
-    }
-
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->subject('Statut de stage modifié')
-            ->line("Le stage de {$this->stage->stagiaire->name} est passé de « {$this->ancienStatut} » à « {$this->nouveauStatut} ».")
-            ->action('Voir les stages', url('/stages'));
+        return [
+            'Statut de stage modifié',
+            "Le stage de {$this->stage->stagiaire->name} est passé de « {$this->ancienStatut} » à « {$this->nouveauStatut} ».",
+            'Voir les stages',
+            url('/stages'),
+        ];
     }
 
     public function toArray(object $notifiable): array

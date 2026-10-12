@@ -7,11 +7,6 @@ use App\Models\WeeklyReport;
 
 class WeeklyReportPolicy
 {
-    public function create(User $user): bool
-    {
-        return $user->isStagiaire();
-    }
-
     public function view(User $user, WeeklyReport $report): bool
     {
         if ($user->isAdmin() || $user->id === $report->stagiaire_id) {

@@ -13,15 +13,8 @@
                     <form method="POST" action="{{ route('reports.store') }}">
                         @csrf
 
-                        <div class="mb-3">
-                            <label class="form-label">Semaine</label>
-                            <input type="number" name="semaine" min="1" max="12" value="{{ old('semaine') }}" class="form-control">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Contenu</label>
-                            <textarea name="contenu" rows="6" class="form-control">{{ old('contenu') }}</textarea>
-                        </div>
+                        <x-champ label="Semaine" name="semaine" type="number" min="1" max="12" :value="old('semaine')" />
+                        <x-champ label="Contenu" name="contenu" type="textarea" :value="old('contenu')" />
 
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-1"></i>Soumettre
