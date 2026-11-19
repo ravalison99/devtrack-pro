@@ -3,41 +3,56 @@
 @section('title', 'Notifications')
 
 @section('content')
-    <h1 class="page-title h3 mb-4"><i class="bi bi-bell me-2"></i>Mes notifications</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="page-title h3 mb-0"><i class="bi bi-bell me-2"></i>Mes notifications</h1>
+
+        <div class="d-flex align-items-center gap-2">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Filtre">
+                <a href="{{ route('notifications.index') }}" class="btn {{ $seulementNonLues ? 'btn-outline-primary' : 'btn-primary' }}">Toutes</a>
+                <a href="{{ route('notifications.index', ['filtre' => 'non_lues']) }}" class="btn {{ $seulementNonLues ? 'btn-primary' : 'btn-outline-primary' }}">
+                    Non lues
+                    @if ($nombreNonLues > 0)
+                        <span class="badge bg-danger rounded-pill ms-1">{{ $nombreNonLues }}</span>
+                    @endif
+                </a>
+            </div>
+
+            @if ($nombreNonLues > 0)
+                <form method="POST" action="{{ route('notifications.readAll') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-check2-all me-1"></i>Tout marquer comme lu
+                    </button>
+                </form>
+            @endif
+        </div>
+    </div>
 
     <div class="card">
         <div class="list-group list-group-flush">
             @forelse ($notifications as $notification)
-                <div class="list-group-item d-flex gap-3 justify-content-between {{ $notification->read_at ? '' : 'bg-light' }}">
-                    <div class="d-flex gap-3">
-                        <i class="bi {{ $notification->read_at ? 'bi-envelope-open text-muted' : 'bi-envelope-fill text-primary' }} fs-5 mt-1"></i>
+                @php
+                    $message = $notification->data['message'] ?? $notification->data['titre'] ?? 'Notification';
+                    $icone = $notification->data['icone'] ?? 'bi-bell';
+                @endphp
+                <div class="list-group-item d-flex gap-3 justify-content-between align-items-center {{ $notification->read_at ? '' : 'bg-light' }}">
+                    <a href="{{ route('notifications.open', $notification->id) }}" class="d-flex gap-3 text-decoration-none text-body flex-grow-1">
+                        <i class="bi {{ $icone }} fs-5 mt-1 {{ $notification->read_at ? 'text-muted' : 'text-primary' }}"></i>
                         <div>
-                            @if ($notification->type === 'App\Notifications\TaskStatusChangedNotification')
-                                Tâche « {{ $notification->data['titre'] }} » :
-                                <span class="badge bg-secondary">{{ $notification->data['ancien_statut'] }}</span>
-                                <i class="bi bi-arrow-right mx-1"></i>
-                                <span class="badge bg-primary">{{ $notification->data['nouveau_statut'] }}</span>
-                            @elseif ($notification->type === 'App\Notifications\WeeklyReportSubmittedNotification')
-                                <strong>{{ $notification->data['stagiaire'] }}</strong> a soumis son rapport de la semaine {{ $notification->data['semaine'] }}
-                            @elseif ($notification->type === 'App\Notifications\StageAssignedNotification')
-                                Affectation de stage : <strong>{{ $notification->data['stagiaire'] }}</strong> ↔ <strong>{{ $notification->data['mentor'] }}</strong>
-                            @elseif ($notification->type === 'App\Notifications\StageStatusChangedNotification')
-                                Le stage de <strong>{{ $notification->data['stagiaire'] }}</strong> :
-                                <span class="badge bg-secondary">{{ $notification->data['ancien_statut'] }}</span>
-                                <i class="bi bi-arrow-right mx-1"></i>
-                                <span class="badge bg-primary">{{ $notification->data['nouveau_statut'] }}</span>
-                            @elseif ($notification->type === 'App\Notifications\TaskAssignedNotification')
-                                Nouvelle tâche assignée : <strong>{{ $notification->data['titre'] }}</strong> ({{ $notification->data['projet'] }})
-                            @elseif ($notification->type === 'App\Notifications\NewUserNotification')
-                                Nouvel utilisateur : <strong>{{ $notification->data['name'] }}</strong> ({{ $notification->data['role'] }})
-                            @endif
+                            <div class="{{ $notification->read_at ? '' : 'fw-semibold' }}">{{ $message }}</div>
+                            <div class="text-muted small">
+                                {{ $notification->created_at->diffForHumans() }}
+                                @unless ($notification->read_at)
+                                    <span class="badge bg-primary ms-1">Nouveau</span>
+                                @endunless
+                            </div>
                         </div>
-                    </div>
+                    </a>
 
                     <form method="POST" action="{{ route('notifications.destroy', $notification->id) }}" onsubmit="return confirm('Supprimer cette notification ?');">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-outline-secondary text-nowrap">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary text-nowrap" title="Supprimer">
                             <i class="bi bi-trash"></i>
                         </button>
                     </form>
@@ -45,7 +60,7 @@
             @empty
                 <div class="list-group-item text-center text-muted py-5">
                     <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                    Aucune notification.
+                    {{ $seulementNonLues ? 'Aucune notification non lue.' : 'Aucune notification.' }}
                 </div>
             @endforelse
         </div>

@@ -12,21 +12,43 @@ class StageStatusChangedNotification extends BaseNotification
         protected string $nouveauStatut
     ) {}
 
-    protected function contenuMail(): array
+    protected function message(): string
     {
-        return [
-            'Statut de stage modifié',
-            "Le stage de {$this->stage->stagiaire->name} est passé de « {$this->ancienStatut} » à « {$this->nouveauStatut} ».",
-            'Voir les stages',
-            url('/stages'),
-        ];
+        $stagiaire = $this->stage->stagiaire?->name ?? 'Compte supprimé';
+
+        return "Le stage de {$stagiaire} est passé de « {$this->ancienStatut} » à « {$this->nouveauStatut} ».";
     }
 
-    public function toArray(object $notifiable): array
+    protected function chemin(): string
+    {
+        return '/stages';
+    }
+
+    protected function sujet(): string
+    {
+        return 'Statut de stage modifié';
+    }
+
+    protected function libelleLien(): string
+    {
+        return 'Voir les stages';
+    }
+
+    protected function icone(): string
+    {
+        return 'bi-arrow-repeat';
+    }
+
+    protected function parMail(): bool
+    {
+        return true;
+    }
+
+    protected function donnees(): array
     {
         return [
             'stage_id' => $this->stage->id,
-            'stagiaire' => $this->stage->stagiaire->name,
+            'stagiaire' => $this->stage->stagiaire?->name,
             'ancien_statut' => $this->ancienStatut,
             'nouveau_statut' => $this->nouveauStatut,
         ];

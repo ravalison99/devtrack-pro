@@ -7,17 +7,17 @@ use App\Notifications\TaskStatusChangedNotification;
 
 class LogTaskStatusChanged
 {
+    /** Le mentor, l'assigné et le chef de groupe sont prévenus, sauf la personne qui vient de changer le statut. */
     public function handle(TaskStatusChanged $event): void
     {
-        $destinataires = collect([$event->task->project->stage->mentor, $event->task->project->stage->stagiaire])
-            ->filter();
+        $task = $event->task;
 
-        foreach ($destinataires as $destinataire) {
-            $destinataire->notify(new TaskStatusChangedNotification(
-                $event->task,
+        $task->participants()
+            ->reject(fn ($participant) => $participant->id === auth()->id())
+            ->each(fn ($participant) => $participant->notify(new TaskStatusChangedNotification(
+                $task,
                 $event->ancienStatut,
                 $event->nouveauStatut
-            ));
-        }
+            )));
     }
 }

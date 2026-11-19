@@ -12,7 +12,6 @@ use App\Models\Project;
 use App\Models\Stage;
 use App\Models\Task;
 use App\Models\User;
-use App\Models\WeeklyReport;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -33,7 +32,6 @@ class ModelRelationsTest extends TestCase
             [Project::class, 'tasks', HasMany::class, Task::class],
             [User::class, 'stagesEnTantQueMentor', HasMany::class, Stage::class],
             [User::class, 'journalEntries', HasMany::class, JournalEntry::class],
-            [User::class, 'weeklyReports', HasMany::class, WeeklyReport::class],
             [User::class, 'documents', HasMany::class, Document::class],
         ];
     }

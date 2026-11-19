@@ -77,6 +77,9 @@
                         data-transitions="{{ implode(',', $transitions) }}"
                     >
                         {{ $task->titre }}
+                        @if ($task->assigne)
+                            <div class="small text-muted"><i class="bi bi-person me-1"></i>{{ $task->assigne->name }}</div>
+                        @endif
                     </div>
                 @endforeach
             </div>

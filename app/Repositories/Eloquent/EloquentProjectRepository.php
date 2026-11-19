@@ -9,16 +9,29 @@ use Illuminate\Database\Eloquent\Collection;
 
 class EloquentProjectRepository implements ProjectRepositoryInterface
 {
-    use FiltreParMembreDuStage;
+    use FiltreParAccesAuProjet;
 
     public function all(): Collection
     {
-        return Project::with('stage')->get();
+        return $this->requete()->get();
     }
 
     public function findById(int $id): ?Project
     {
-        return Project::with('stage')->find($id);
+        return $this->requete()->find($id);
+    }
+
+    /** Détail d'un projet : groupe, membres, cahier des charges et rapports déposés (versions incluses). */
+    public function findWithDetails(int $id): ?Project
+    {
+        return $this->requete()
+            ->with([
+                'mentor',
+                'documents' => fn ($q) => $q->orderByDesc('id'),
+                'documents.versions' => fn ($q) => $q->orderByDesc('numero_version'),
+                'documents.versions.utilisateur',
+            ])
+            ->find($id);
     }
 
     public function create(array $data): Project
@@ -26,18 +39,38 @@ class EloquentProjectRepository implements ProjectRepositoryInterface
         return Project::create($data);
     }
 
+    public function countForStagiaire(int $stagiaireId): int
+    {
+        return Project::duStagiaire($stagiaireId)->count();
+    }
+
     public function count(): int
     {
         return Project::count();
     }
 
-    protected function requete(): Builder
+    /** Projets confiés à un groupe dont le stagiaire est chef. */
+    public function findForChef(int $chefId): Collection
     {
-        return Project::with('stage');
+        return $this->requete()->duChef($chefId)->orderBy('nom')->get();
     }
 
-    protected function relationStage(): string
+    public function findNonAffectesForMentor(int $mentorId): Collection
     {
-        return 'stage';
+        return $this->requete()
+            ->duMentor($mentorId)
+            ->nonAffecte()
+            ->orderBy('nom')
+            ->get();
+    }
+
+    protected function requete(): Builder
+    {
+        return Project::with(['stage', 'groupe.chef', 'groupe.membres']);
+    }
+
+    protected function relationProjet(): ?string
+    {
+        return null;
     }
 }

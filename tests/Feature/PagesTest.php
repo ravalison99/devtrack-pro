@@ -3,14 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Comment;
-use App\Models\Document;
 use App\Models\Project;
 use App\Models\Stage;
 use App\Models\Task;
 use App\Models\User;
-use App\Models\WeeklyReport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PagesTest extends TestCase
@@ -56,7 +53,7 @@ class PagesTest extends TestCase
     {
         $stage = $this->creerTache()->project->stage;
 
-        $response = $this->actingAs($stage->mentor)->get('/stages?' . http_build_query([
+        $response = $this->actingAs($stage->mentor)->get('/stages?'.http_build_query([
             'stagiaire_id' => $stage->stagiaire_id,
             'date_debut' => '2025-12-01',
             'date_fin' => '2026-04-01',
@@ -71,8 +68,7 @@ class PagesTest extends TestCase
         $stage = $tache->project->stage;
         $mentor = $stage->mentor;
 
-        $this->actingAs($mentor)->get("/stages/{$stage->id}/projects/create")->assertOk();
-        $this->actingAs($mentor)->get("/projects/create?stage_id={$stage->id}")->assertOk();
+        $this->actingAs($mentor)->get('/projects/create')->assertOk();
         $this->actingAs($mentor)->get("/tasks/create?project_id={$tache->project_id}")->assertOk();
         $this->actingAs($mentor)->get('/dashboard')->assertOk()->assertSee('Tâches en retard');
     }
@@ -90,35 +86,12 @@ class PagesTest extends TestCase
             ->assertSee($mentor->name);
     }
 
-    public function test_un_stagiaire_consulte_ses_documents_rapports_et_notifications(): void
+    public function test_un_stagiaire_consulte_ses_documents_et_notifications(): void
     {
-        Storage::fake('local');
-        Storage::disk('local')->put('documents/v1.pdf', 'contenu');
-
         $stagiaire = User::factory()->create(['role' => 'stagiaire']);
-        $document = Document::create(['utilisateur_id' => $stagiaire->id, 'titre' => 'Guide']);
-        $version = $document->versions()->create(['numero_version' => 1, 'fichier' => 'documents/v1.pdf']);
 
-        $this->actingAs($stagiaire)->get('/documents')->assertOk()->assertSee('Guide');
-        $this->actingAs($stagiaire)->get("/documents/{$document->id}/versions/{$version->id}/download")->assertOk();
-        $this->actingAs($stagiaire)->get('/reports')->assertOk();
+        $this->actingAs($stagiaire)->get('/documents')->assertOk();
         $this->actingAs($stagiaire)->get('/notifications')->assertOk();
-    }
-
-    public function test_un_stagiaire_peut_telecharger_son_propre_rapport(): void
-    {
-        Storage::fake('local');
-        Storage::disk('local')->put('rapports/s1.pdf', 'contenu');
-
-        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
-        $report = WeeklyReport::create([
-            'stagiaire_id' => $stagiaire->id,
-            'semaine' => 1,
-            'contenu' => 'Contenu',
-            'fichier_pdf' => 'rapports/s1.pdf',
-        ]);
-
-        $this->actingAs($stagiaire)->get("/reports/{$report->id}/download")->assertOk();
     }
 
     public function test_un_administrateur_peut_ouvrir_le_formulaire_de_modification(): void

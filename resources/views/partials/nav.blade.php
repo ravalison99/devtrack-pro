@@ -1,5 +1,6 @@
 @php
     $currentUser = auth()->user();
+    $nombreNonLues = $currentUser->unreadNotifications()->count();
 @endphp
 
 <nav class="navbar navbar-expand-lg navbar-devtrack navbar-dark sticky-top shadow-sm">
@@ -35,6 +36,14 @@
                     </a>
                 </li>
 
+                @if ($currentUser->isMentor())
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('groupes.*') ? 'active' : '' }}" href="{{ route('groupes.index') }}">
+                            <i class="bi bi-people me-1"></i>Groupes
+                        </a>
+                    </li>
+                @endif
+
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('tasks.*') ? 'active' : '' }}" href="{{ route('tasks.index') }}">
                         <i class="bi bi-list-check me-1"></i>Tâches
@@ -45,11 +54,6 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('journal.*') ? 'active' : '' }}" href="{{ route('journal.index') }}">
                             <i class="bi bi-journal-text me-1"></i>Journal
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
-                            <i class="bi bi-file-earmark-bar-graph me-1"></i>Rapports
                         </a>
                     </li>
                 @endif
@@ -71,6 +75,9 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}" href="{{ route('notifications.index') }}">
                         <i class="bi bi-bell me-1"></i>Notifications
+                        @if ($nombreNonLues > 0)
+                            <span class="badge rounded-pill bg-danger ms-1">{{ $nombreNonLues > 99 ? '99+' : $nombreNonLues }}</span>
+                        @endif
                     </a>
                 </li>
             </ul>

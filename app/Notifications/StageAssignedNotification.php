@@ -8,22 +8,45 @@ class StageAssignedNotification extends BaseNotification
 {
     public function __construct(protected Stage $stage) {}
 
-    protected function contenuMail(): array
+    protected function message(): string
     {
-        return [
-            'Nouvelle affectation de stage',
-            "Un stage a été créé associant {$this->stage->stagiaire->name} (stagiaire) et {$this->stage->mentor->name} (mentor).",
-            'Voir les stages',
-            url('/stages'),
-        ];
+        $stagiaire = $this->stage->stagiaire?->name ?? 'Compte supprimé';
+        $mentor = $this->stage->mentor?->name ?? 'Compte supprimé';
+
+        return "Nouveau stage : {$stagiaire} (stagiaire) et {$mentor} (mentor).";
     }
 
-    public function toArray(object $notifiable): array
+    protected function chemin(): string
+    {
+        return '/stages';
+    }
+
+    protected function sujet(): string
+    {
+        return 'Nouvelle affectation de stage';
+    }
+
+    protected function libelleLien(): string
+    {
+        return 'Voir les stages';
+    }
+
+    protected function icone(): string
+    {
+        return 'bi-mortarboard';
+    }
+
+    protected function parMail(): bool
+    {
+        return true;
+    }
+
+    protected function donnees(): array
     {
         return [
             'stage_id' => $this->stage->id,
-            'stagiaire' => $this->stage->stagiaire->name,
-            'mentor' => $this->stage->mentor->name,
+            'stagiaire' => $this->stage->stagiaire?->name,
+            'mentor' => $this->stage->mentor?->name,
         ];
     }
 }

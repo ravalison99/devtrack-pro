@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAttachmentRequest;
+use App\Http\Requests\StoreCommentRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskStatusRequest;
+use App\Models\Attachment;
 use App\Models\Task;
 use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Services\TaskService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TaskController extends Controller
 {
@@ -52,18 +55,22 @@ class TaskController extends Controller
     {
         $utilisateur = auth()->user();
 
-        abort_unless($utilisateur->isAdmin() || $utilisateur->isMentor(), 403);
+        // Administrateur, mentor, ou stagiaire chef de groupe (il répartit les tâches de son projet).
+        abort_unless($utilisateur->isAdmin() || $utilisateur->isMentor() || $utilisateur->estChefDeGroupe(), 403);
 
         $projetSelectionne = null;
 
         if ($request->filled('project_id')) {
             $projetSelectionne = $this->projects->findById((int) $request->input('project_id'));
-            $this->authorize('update', $projetSelectionne);
+            abort_if($projetSelectionne === null, 404);
+            $this->authorize('gererTaches', $projetSelectionne);
         }
 
-        $projects = $utilisateur->isAdmin()
-            ? $this->projects->all()
-            : $this->projects->findForMentor($utilisateur->id);
+        $projects = match (true) {
+            $utilisateur->isAdmin() => $this->projects->all(),
+            $utilisateur->isMentor() => $this->projects->findForMentor($utilisateur->id),
+            default => $this->projects->findForChef($utilisateur->id),
+        };
 
         return view('tasks.create', compact('projects', 'projetSelectionne'));
     }
@@ -99,8 +106,29 @@ class TaskController extends Controller
 
     public function storeAttachment(StoreAttachmentRequest $request, Task $task)
     {
-        $this->taskService->ajouterPieceJointe($task, $request->file('fichier'));
+        // Une pièce jointe ne peut être ajoutée qu'à une tâche que l'on a le droit de voir.
+        $this->authorize('view', $task);
+
+        $this->taskService->ajouterPieceJointe($task, $request->file('fichier'), $request->user());
 
         return back()->with('success', 'Pièce jointe ajoutée.');
+    }
+
+    /** Le chemin de stockage n'est jamais exposé : le fichier transite ici après contrôle d'accès à la tâche. */
+    public function downloadAttachment(Task $task, Attachment $attachment)
+    {
+        $this->authorize('voirPiecesJointes', $task);
+
+        abort_unless($attachment->task_id === $task->id, 404);
+        abort_unless(Storage::disk('local')->exists($attachment->chemin), 404);
+
+        return Storage::disk('local')->download($attachment->chemin, $attachment->nom_fichier);
+    }
+
+    public function storeComment(StoreCommentRequest $request, Task $task)
+    {
+        $this->taskService->ajouterCommentaire($task, $request->user(), $request->validated('contenu'));
+
+        return back()->with('success', 'Commentaire ajouté.');
     }
 }

@@ -6,23 +6,46 @@ use App\Models\Task;
 
 class TaskStatusChangedNotification extends BaseNotification
 {
+    /** Statuts qui méritent un mail : la tâche est à relire ou validée. Les autres passages restent dans l'application. */
+    public const STATUTS_PAR_MAIL = ['en_revue', 'termine'];
+
     public function __construct(
         protected Task $task,
         protected string $ancienStatut,
         protected string $nouveauStatut
     ) {}
 
-    protected function contenuMail(): array
+    protected function message(): string
     {
-        return [
-            'Statut de tâche modifié',
-            "La tâche « {$this->task->titre} » est passée de « {$this->ancienStatut} » à « {$this->nouveauStatut} ».",
-            'Voir la tâche',
-            url("/tasks/{$this->task->id}"),
-        ];
+        return "Tâche « {$this->task->titre} » : « {$this->ancienStatut} » → « {$this->nouveauStatut} ».";
     }
 
-    public function toArray(object $notifiable): array
+    protected function chemin(): string
+    {
+        return "/tasks/{$this->task->id}";
+    }
+
+    protected function sujet(): string
+    {
+        return 'Statut de tâche modifié';
+    }
+
+    protected function libelleLien(): string
+    {
+        return 'Voir la tâche';
+    }
+
+    protected function icone(): string
+    {
+        return 'bi-arrow-repeat';
+    }
+
+    protected function parMail(): bool
+    {
+        return in_array($this->nouveauStatut, self::STATUTS_PAR_MAIL, true);
+    }
+
+    protected function donnees(): array
     {
         return [
             'task_id' => $this->task->id,

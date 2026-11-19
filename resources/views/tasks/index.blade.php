@@ -5,7 +5,7 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="page-title h3 mb-0"><i class="bi bi-list-check me-2"></i>Tâches</h1>
-        @if (auth()->user()->isAdmin() || auth()->user()->isMentor())
+        @if (auth()->user()->isAdmin() || auth()->user()->isMentor() || auth()->user()->estChefDeGroupe())
             <a href="{{ route('tasks.create') }}" class="btn btn-primary">
                 <i class="bi bi-plus-lg me-1"></i>Créer une tâche
             </a>
@@ -19,6 +19,7 @@
                     <tr>
                         <th>Titre</th>
                         <th>Projet</th>
+                        <th>Assignée à</th>
                         <th>Priorité</th>
                         <th>Statut</th>
                         <th style="min-width:180px">Changer le statut</th>
@@ -39,6 +40,7 @@
                                 </a>
                             </td>
                             <td>{{ $task->project->nom }}</td>
+                            <td>{{ $task->assigne?->name ?? '—' }}</td>
                             <td><span class="badge {{ $couleursPriorite[$task->priorite] ?? 'bg-secondary' }}">{{ $task->priorite }}</span></td>
                             <td><span class="badge {{ $couleursStatutTache[$task->statut] ?? 'bg-secondary' }}">{{ $task->statut }}</span></td>
                             <td>
@@ -60,7 +62,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">Aucune tâche pour le moment.</td>
+                            <td colspan="6" class="text-center text-muted py-4">Aucune tâche pour le moment.</td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -8,17 +8,37 @@ class TaskAssignedNotification extends BaseNotification
 {
     public function __construct(protected Task $task) {}
 
-    protected function contenuMail(): array
+    protected function message(): string
     {
-        return [
-            'Nouvelle tâche assignée',
-            "Une nouvelle tâche « {$this->task->titre} » vous a été assignée dans le projet « {$this->task->project->nom} ».",
-            'Voir la tâche',
-            url("/tasks/{$this->task->id}"),
-        ];
+        return "Nouvelle tâche « {$this->task->titre} » assignée (projet « {$this->task->project->nom} »).";
     }
 
-    public function toArray(object $notifiable): array
+    protected function chemin(): string
+    {
+        return "/tasks/{$this->task->id}";
+    }
+
+    protected function sujet(): string
+    {
+        return 'Nouvelle tâche assignée';
+    }
+
+    protected function libelleLien(): string
+    {
+        return 'Voir la tâche';
+    }
+
+    protected function icone(): string
+    {
+        return 'bi-list-check';
+    }
+
+    protected function parMail(): bool
+    {
+        return true;
+    }
+
+    protected function donnees(): array
     {
         return [
             'task_id' => $this->task->id,

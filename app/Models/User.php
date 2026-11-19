@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -63,13 +64,23 @@ class User extends Authenticatable
         return $this->hasMany(JournalEntry::class, 'stagiaire_id');
     }
 
-    public function weeklyReports(): HasMany
-    {
-        return $this->hasMany(WeeklyReport::class, 'stagiaire_id');
-    }
-
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class, 'utilisateur_id');
+    }
+
+    public function groupes(): BelongsToMany
+    {
+        return $this->belongsToMany(Groupe::class, 'groupe_user', 'user_id', 'groupe_id')->withTimestamps();
+    }
+
+    public function groupesDiriges(): HasMany
+    {
+        return $this->hasMany(Groupe::class, 'chef_id');
+    }
+
+    public function estChefDeGroupe(): bool
+    {
+        return $this->groupesDiriges()->exists();
     }
 }

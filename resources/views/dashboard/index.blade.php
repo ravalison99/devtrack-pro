@@ -8,13 +8,21 @@
 
         @if (auth()->user()->isMentor())
             <div class="d-flex gap-2">
-                <a href="{{ route('projects.create.mentor') }}" class="btn btn-primary btn-sm">
+                <a href="{{ route('projects.create') }}" class="btn btn-primary btn-sm">
                     <i class="bi bi-folder-plus me-1"></i>Créer un projet
+                </a>
+                <a href="{{ route('groupes.create') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-people me-1"></i>Créer un groupe
                 </a>
                 <a href="{{ route('tasks.create') }}" class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-plus-lg me-1"></i>Créer une tâche
                 </a>
             </div>
+        @elseif (auth()->user()->isStagiaire() && auth()->user()->estChefDeGroupe())
+            {{-- Le chef de groupe répartit les tâches du projet confié à son groupe. --}}
+            <a href="{{ route('tasks.create') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Créer une tâche
+            </a>
         @endif
     </div>
 
@@ -77,7 +85,6 @@
                     ['label' => 'Tâches en cours', 'valeur' => $indicateurs['taches_en_cours'], 'couleur' => '#d97706', 'icone' => 'bi-arrow-repeat'],
                     ['label' => 'Tâches terminées', 'valeur' => $indicateurs['taches_terminees'], 'couleur' => '#16a34a', 'icone' => 'bi-check-circle'],
                     ['label' => 'Tâches en retard', 'valeur' => $indicateurs['taches_en_retard'], 'couleur' => '#dc2626', 'icone' => 'bi-exclamation-triangle'],
-                    ['label' => 'rapports reçus', 'valeur' => $indicateurs['rapports_recus'], 'couleur' => '#0d9488', 'icone' => 'bi-file-earmark-bar-graph'],
                 ];
             @endphp
         @endif

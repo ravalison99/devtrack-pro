@@ -4,12 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProjectRequest;
 use App\Models\Project;
-use App\Models\Stage;
 use App\Repositories\Contracts\ProjectRepositoryInterface;
-use App\Repositories\Contracts\StageRepositoryInterface;
 use App\Services\ProjectService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
 {
@@ -17,8 +15,7 @@ class ProjectController extends Controller
 
     public function __construct(
         protected ProjectService $projectService,
-        protected ProjectRepositoryInterface $projects,
-        protected StageRepositoryInterface $stages
+        protected ProjectRepositoryInterface $projects
     ) {}
 
     public function index()
@@ -34,36 +31,46 @@ class ProjectController extends Controller
         return view('projects.index', compact('projects'));
     }
 
-    public function create(Request $request, ?Stage $stage = null)
+    public function create()
     {
-        if ($stage !== null) {
-            $this->authorize('create', [Project::class, $stage]);
+        $this->authorize('create', Project::class);
 
-            return view('projects.create', compact('stage'));
-        }
-
-        $utilisateur = auth()->user();
-
-        abort_unless($utilisateur->isMentor(), 403);
-
-        $mesStages = $this->stages->findByMentor($utilisateur->id);
-
-        $stagePreselectionnee = null;
-        if ($request->filled('stage_id')) {
-            $stagePreselectionnee = $mesStages->firstWhere('id', (int) $request->input('stage_id'));
-        }
-
-        return view('projects.create', ['stage' => $stagePreselectionnee, 'stages' => $mesStages]);
+        return view('projects.create');
     }
 
     public function store(StoreProjectRequest $request)
     {
-        $stage = $this->stages->findById((int) $request->validated('stage_id'));
-
-        $this->projectService->creer($request->validated(), $stage);
+        $this->projectService->creer(
+            $request->user(),
+            $request->validated(),
+            $request->file('cahier_charges')
+        );
 
         return redirect()
             ->route('projects.index')
             ->with('success', 'Projet créé avec succès.');
+    }
+
+    public function show(int $projectId)
+    {
+        $project = $this->projects->findWithDetails($projectId);
+        abort_if($project === null, 404);
+
+        $this->authorize('view', $project);
+
+        return view('projects.show', compact('project'));
+    }
+
+    /** Le chemin de stockage n'est jamais exposé : le fichier transite par ce contrôleur après autorisation. */
+    public function downloadCahierDesCharges(int $projectId)
+    {
+        $project = $this->projects->findById($projectId);
+        abort_if($project === null || ! $project->aUnCahierDesCharges(), 404);
+
+        $this->authorize('voirCahierDesCharges', $project);
+
+        abort_unless(Storage::disk('local')->exists($project->cahier_charges_chemin), 404);
+
+        return Storage::disk('local')->download($project->cahier_charges_chemin, $project->cahier_charges_nom);
     }
 }

@@ -2,13 +2,13 @@
 
 namespace App\Events;
 
-use App\Models\WeeklyReport;
+use App\Models\Groupe;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class WeeklyReportSubmitted
+class GroupeCree
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public WeeklyReport $report) {}
+    public function __construct(public Groupe $groupe) {}
 }

@@ -3,27 +3,39 @@
 namespace App\Services;
 
 use App\Models\Project;
-use App\Models\Stage;
+use App\Models\User;
 use App\Repositories\Contracts\ProjectRepositoryInterface;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class ProjectService
 {
     public function __construct(protected ProjectRepositoryInterface $projects) {}
 
-    public function creer(array $data, Stage $stage): Project
+    /**
+     * Crée un projet pour le mentor, avec son cahier des charges.
+     * Aucun groupe n'est créé ni associé ici : l'affectation se fait à la création du groupe.
+     */
+    public function creer(User $mentor, array $data, UploadedFile $cahierDesCharges): Project
     {
-        $this->verifierStageActif($stage);
+        // Disque « local » = stockage privé (jamais servi directement par le serveur web).
+        $chemin = $cahierDesCharges->store('projets/cahiers-des-charges', 'local');
 
-        return $this->projects->create($data);
-    }
+        try {
+            return DB::transaction(fn () => $this->projects->create([
+                'mentor_id' => $mentor->id,
+                'nom' => $data['nom'],
+                'description' => $data['description'] ?? null,
+                'cahier_charges_nom' => $cahierDesCharges->getClientOriginalName(),
+                'cahier_charges_chemin' => $chemin,
+                'cahier_charges_taille' => $cahierDesCharges->getSize(),
+            ]));
+        } catch (Throwable $e) {
+            Storage::disk('local')->delete($chemin);
 
-    protected function verifierStageActif(Stage $stage): void
-    {
-        if ($stage->statut !== 'en_cours' && $stage->statut !== 'planifie') {
-            throw ValidationException::withMessages([
-                'stage_id' => 'Impossible de créer un projet sur un stage terminé ou annulé.',
-            ]);
+            throw $e;
         }
     }
 }

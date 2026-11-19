@@ -6,6 +6,8 @@ use App\Models\Project;
 use App\Models\Stage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProjectTest extends TestCase
@@ -22,68 +24,68 @@ class ProjectTest extends TestCase
         ]);
     }
 
-    public function test_le_mentor_du_stage_peut_creer_un_projet(): void
+    public function test_un_mentor_peut_creer_un_projet_avec_son_cahier_des_charges(): void
     {
+        Storage::fake('local');
         $mentor = User::factory()->create(['role' => 'mentor']);
-        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
-        $stage = $this->creerStage($mentor, $stagiaire);
 
         $response = $this->actingAs($mentor)->post('/projects', [
-            'stage_id' => $stage->id,
             'nom' => 'Refonte du module Kanban',
             'description' => 'Migration vers un système drag-and-drop.',
+            'cahier_charges' => UploadedFile::fake()->create('cahier.pdf', 200, 'application/pdf'),
         ]);
 
         $response->assertRedirect('/projects');
-        $this->assertDatabaseHas('projects', [
-            'stage_id' => $stage->id,
-            'nom' => 'Refonte du module Kanban',
-        ]);
+        $projet = Project::where('nom', 'Refonte du module Kanban')->firstOrFail();
+        $this->assertSame($mentor->id, $projet->mentor_id);
+        $this->assertNull($projet->stage_id);
+        $this->assertSame('cahier.pdf', $projet->cahier_charges_nom);
+        Storage::disk('local')->assertExists($projet->cahier_charges_chemin);
+        // La création d'un projet ne crée ni n'affecte aucun groupe.
+        $this->assertDatabaseCount('groupes', 0);
     }
 
-    public function test_un_mentor_different_ne_peut_pas_creer_un_projet_sur_ce_stage(): void
+    public function test_le_nom_et_le_cahier_des_charges_sont_obligatoires(): void
     {
+        Storage::fake('local');
         $mentor = User::factory()->create(['role' => 'mentor']);
-        $autreMentor = User::factory()->create(['role' => 'mentor']);
-        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
-        $stage = $this->creerStage($mentor, $stagiaire);
 
-        $response = $this->actingAs($autreMentor)->post('/projects', [
-            'stage_id' => $stage->id,
-            'nom' => 'Tentative non autorisée',
-        ]);
-
-        $response->assertForbidden();
+        $this->actingAs($mentor)->post('/projects', [])->assertSessionHasErrors(['nom', 'cahier_charges']);
+        $this->assertDatabaseCount('projects', 0);
     }
 
-    public function test_un_administrateur_ne_peut_pas_creer_un_projet(): void
+    public function test_le_type_et_la_taille_du_cahier_des_charges_sont_controles(): void
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        Storage::fake('local');
         $mentor = User::factory()->create(['role' => 'mentor']);
-        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
-        $stage = $this->creerStage($mentor, $stagiaire);
 
-        $response = $this->actingAs($admin)->post('/projects', [
-            'stage_id' => $stage->id,
-            'nom' => 'Tentative admin',
-        ]);
+        $this->actingAs($mentor)->post('/projects', [
+            'nom' => 'P',
+            'cahier_charges' => UploadedFile::fake()->create('script.php', 10, 'text/x-php'),
+        ])->assertSessionHasErrors('cahier_charges');
 
-        $response->assertForbidden();
+        $this->actingAs($mentor)->post('/projects', [
+            'nom' => 'P',
+            'cahier_charges' => UploadedFile::fake()->create('gros.pdf', 6000, 'application/pdf'),
+        ])->assertSessionHasErrors('cahier_charges');
+
+        $this->assertDatabaseCount('projects', 0);
     }
 
-    public function test_on_ne_peut_pas_creer_de_projet_sur_un_stage_termine(): void
+    public function test_un_stagiaire_et_un_administrateur_ne_peuvent_pas_creer_de_projet(): void
     {
-        $mentor = User::factory()->create(['role' => 'mentor']);
-        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
-        $stage = $this->creerStage($mentor, $stagiaire);
-        $stage->update(['statut' => 'termine']);
+        Storage::fake('local');
 
-        $response = $this->actingAs($mentor)->post('/projects', [
-            'stage_id' => $stage->id,
-            'nom' => 'Projet sur stage terminé',
-        ]);
+        foreach (['stagiaire', 'admin'] as $role) {
+            $utilisateur = User::factory()->create(['role' => $role]);
 
-        $response->assertSessionHasErrors('stage_id');
+            $this->actingAs($utilisateur)->post('/projects', [
+                'nom' => 'Tentative',
+                'cahier_charges' => UploadedFile::fake()->create('cahier.pdf', 100, 'application/pdf'),
+            ])->assertForbidden();
+        }
+
+        $this->assertDatabaseCount('projects', 0);
     }
 
     public function test_un_mentor_ne_voit_que_ses_propres_projets(): void
@@ -154,6 +156,5 @@ class ProjectTest extends TestCase
         $stage = $this->creerStage($mentor, $stagiaire);
 
         $this->actingAs($admin)->get('/projects/create')->assertForbidden();
-        $this->actingAs($admin)->get("/stages/{$stage->id}/projects/create")->assertForbidden();
     }
 }

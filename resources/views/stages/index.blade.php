@@ -19,11 +19,11 @@
                 @forelse ($stagiairesActifs as $stageActif)
                     <div class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
-                            <strong>{{ $stageActif->stagiaire->name }}</strong>
-                            <span class="text-muted small ms-2">{{ $stageActif->stagiaire->email }}</span>
+                            <strong>{{ $stageActif->stagiaire?->name ?? "Compte supprimé" }}</strong>
+                            <span class="text-muted small ms-2">{{ $stageActif->stagiaire?->email }}</span>
                         </div>
                         <div class="text-muted small">
-                            Mentor : {{ $stageActif->mentor->name }} —
+                            Mentor : {{ $stageActif->mentor?->name ?? "Compte supprimé" }} —
                             {{ $stageActif->date_debut->format('d/m/Y') }} → {{ $stageActif->date_fin->format('d/m/Y') }}
                         </div>
                     </div>
@@ -101,9 +101,9 @@
                             $transitions = $transitionsParStage[$stage->id] ?? [];
                         @endphp
                         <tr>
-                            <td>{{ $stage->stagiaire->name }}</td>
-                            <td>{{ $stage->stagiaire->email }}</td>
-                            <td>{{ $stage->mentor->name }}</td>
+                            <td>{{ $stage->stagiaire?->name ?? "Compte supprimé" }}</td>
+                            <td>{{ $stage->stagiaire?->email }}</td>
+                            <td>{{ $stage->mentor?->name ?? "Compte supprimé" }}</td>
                             <td>
                                 <span class="badge {{ $couleursStatutStage[$stage->statut] ?? 'bg-secondary' }}">
                                     {{ $libellesStatutStage[$stage->statut] ?? $stage->statut }}
@@ -112,12 +112,6 @@
                             @if (auth()->user()->isAdmin() || auth()->user()->isMentor())
                                 <td class="text-end">
                                     <div class="d-flex justify-content-end align-items-center gap-2">
-                                        @if (auth()->user()->isMentor())
-                                            <a href="{{ route('projects.create', $stage) }}" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-folder-plus me-1"></i>Nouveau projet
-                                            </a>
-                                        @endif
-
                                         @if (auth()->user()->isAdmin())
                                             @if (count($transitions) > 0)
                                                 <form method="POST" action="{{ route('stages.updateStatus', $stage) }}" class="d-inline">

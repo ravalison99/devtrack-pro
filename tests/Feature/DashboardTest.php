@@ -2,11 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Project;
 use App\Models\Stage;
 use App\Models\Task;
-use App\Models\Project;
 use App\Models\User;
-use App\Models\WeeklyReport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -33,28 +32,6 @@ class DashboardTest extends TestCase
         $response->assertOk();
         $response->assertSee('1');
         $response->assertSee('stage');
-    }
-
-    public function test_un_mentor_voit_le_nombre_de_rapports_recus(): void
-    {
-        $mentor = User::factory()->create(['role' => 'mentor']);
-        $stagiaire = User::factory()->create(['role' => 'stagiaire']);
-
-        Stage::create([
-            'stagiaire_id' => $stagiaire->id,
-            'mentor_id' => $mentor->id,
-            'date_debut' => '2026-01-01',
-            'date_fin' => '2026-03-01',
-        ]);
-
-        WeeklyReport::create(['stagiaire_id' => $stagiaire->id, 'semaine' => 1]);
-        WeeklyReport::create(['stagiaire_id' => $stagiaire->id, 'semaine' => 2]);
-
-        $response = $this->actingAs($mentor)->get('/dashboard');
-
-        $response->assertOk();
-        $response->assertSee('2');
-        $response->assertSee('rapport');
     }
 
     public function test_un_stagiaire_sans_aucune_tache_voit_des_zeros_partout(): void

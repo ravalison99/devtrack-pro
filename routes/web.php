@@ -3,13 +3,15 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\GroupeController;
 use App\Http\Controllers\JournalController;
 use App\Http\Controllers\KanbanController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectDocumentController;
 use App\Http\Controllers\StageController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\WeeklyReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -30,9 +32,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('/stages/{stage}', [StageController::class, 'destroy'])->name('stages.destroy');
 
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
-    Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create.mentor');
-    Route::get('/stages/{stage}/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+    Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])->whereNumber('project')->name('projects.show');
+    Route::get('/projects/{project}/cahier-des-charges', [ProjectController::class, 'downloadCahierDesCharges'])->whereNumber('project')->name('projects.cahier.download');
+    Route::post('/projects/{project}/documents', [ProjectDocumentController::class, 'store'])->whereNumber('project')->name('projects.documents.store');
+
+    Route::get('/groupes', [GroupeController::class, 'index'])->name('groupes.index');
+    Route::get('/groupes/create', [GroupeController::class, 'create'])->name('groupes.create');
+    Route::post('/groupes', [GroupeController::class, 'store'])->name('groupes.store');
 
     Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
     Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
@@ -40,22 +48,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
     Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.updateStatus');
     Route::post('/tasks/{task}/attachments', [TaskController::class, 'storeAttachment'])->name('tasks.attachments.store');
+    Route::get('/tasks/{task}/attachments/{attachment}/download', [TaskController::class, 'downloadAttachment'])->name('tasks.attachments.download');
+    Route::post('/tasks/{task}/comments', [TaskController::class, 'storeComment'])->name('tasks.comments.store');
 
     Route::get('/projects/{project}/kanban', [KanbanController::class, 'show'])->name('kanban.show');
 
     Route::get('/journal', [JournalController::class, 'index'])->name('journal.index');
     Route::post('/journal', [JournalController::class, 'store'])->name('journal.store');
 
-    Route::get('/reports', [WeeklyReportController::class, 'index'])->name('reports.index');
-    Route::post('/reports', [WeeklyReportController::class, 'store'])->name('reports.store');
-    Route::get('/reports/{id}/download', [WeeklyReportController::class, 'download'])->name('reports.download');
-
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
-    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::get('/documents/{documentId}/versions/{versionId}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::delete('/documents/{documentId}/versions/{versionId}', [DocumentController::class, 'destroyVersion'])->name('documents.versions.destroy');
 
-    Route::get('/notifications', [DashboardController::class, 'notifications'])->name('notifications.index');
-    Route::delete('/notifications/{notification}', [DashboardController::class, 'deleteNotification'])->name('notifications.destroy');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+    Route::get('/notifications/{notification}/open', [NotificationController::class, 'open'])->name('notifications.open');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');

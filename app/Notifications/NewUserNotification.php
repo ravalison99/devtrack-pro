@@ -8,17 +8,37 @@ class NewUserNotification extends BaseNotification
 {
     public function __construct(protected User $utilisateur) {}
 
-    protected function contenuMail(): array
+    protected function message(): string
     {
-        return [
-            'Nouvel utilisateur créé',
-            "Un nouvel utilisateur « {$this->utilisateur->name} » ({$this->utilisateur->role}) a été créé.",
-            'Voir les utilisateurs',
-            url('/users'),
-        ];
+        return "Nouvel utilisateur « {$this->utilisateur->name} » ({$this->utilisateur->role}).";
     }
 
-    public function toArray(object $notifiable): array
+    protected function chemin(): string
+    {
+        return '/users';
+    }
+
+    protected function sujet(): string
+    {
+        return 'Nouvel utilisateur créé';
+    }
+
+    protected function libelleLien(): string
+    {
+        return 'Voir les utilisateurs';
+    }
+
+    protected function icone(): string
+    {
+        return 'bi-person-plus';
+    }
+
+    protected function parMail(): bool
+    {
+        return true;
+    }
+
+    protected function donnees(): array
     {
         return [
             'user_id' => $this->utilisateur->id,

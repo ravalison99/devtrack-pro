@@ -27,12 +27,23 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function update(User $user, array $data): User
     {
         $user->update($data);
+
         return $user;
     }
 
     public function countByRole(string $role): int
     {
         return User::where('role', $role)->count();
+    }
+
+    /** Stagiaires actifs qui n'appartiennent encore à aucun groupe (candidats à un nouveau groupe). */
+    public function findStagiairesSansGroupe(): Collection
+    {
+        return User::where('role', 'stagiaire')
+            ->where('is_active', true)
+            ->whereDoesntHave('groupes')
+            ->orderBy('name')
+            ->get();
     }
 
     public function paginateSorted(string $champ, string $direction, ?string $recherche = null, int $parPage = 5): LengthAwarePaginator

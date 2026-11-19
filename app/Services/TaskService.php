@@ -2,13 +2,16 @@
 
 namespace App\Services;
 
+use App\Events\CommentaireAjoute;
+use App\Events\PieceJointeAjoutee;
 use App\Events\TaskCreated;
 use App\Events\TaskStatusChanged;
+use App\Models\Attachment;
+use App\Models\Comment;
 use App\Models\Task;
 use App\Models\User;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class TaskService
@@ -60,13 +63,32 @@ class TaskService
         return $task;
     }
 
-    public function ajouterPieceJointe(Task $task, UploadedFile $fichier): \App\Models\Attachment
+    /** Dépôt d'un fichier sur la tâche (ex. document rendu par le stagiaire), avec son auteur. */
+    public function ajouterPieceJointe(Task $task, UploadedFile $fichier, ?User $auteur = null): Attachment
     {
         $chemin = $fichier->store('attachments', 'local');
 
-        return $task->attachments()->create([
+        $piece = $task->attachments()->create([
+            'utilisateur_id' => $auteur?->id,
             'nom_fichier' => $fichier->getClientOriginalName(),
             'chemin' => $chemin,
         ]);
+
+        PieceJointeAjoutee::dispatch($piece);
+
+        return $piece;
+    }
+
+    /** Message laissé sur la tâche (discussion entre stagiaire, chef de groupe, mentor...). */
+    public function ajouterCommentaire(Task $task, User $auteur, string $contenu): Comment
+    {
+        $commentaire = $task->comments()->create([
+            'utilisateur_id' => $auteur->id,
+            'contenu' => $contenu,
+        ]);
+
+        CommentaireAjoute::dispatch($commentaire);
+
+        return $commentaire;
     }
 }

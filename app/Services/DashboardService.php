@@ -8,14 +8,12 @@ use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Repositories\Contracts\StageRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
-use App\Repositories\Contracts\WeeklyReportRepositoryInterface;
 
 class DashboardService
 {
     public function __construct(
         protected StageRepositoryInterface $stages,
         protected TaskRepositoryInterface $tasks,
-        protected WeeklyReportRepositoryInterface $reports,
         protected UserRepositoryInterface $users,
         protected ProjectRepositoryInterface $projects,
         protected DocumentRepositoryInterface $documents
@@ -58,7 +56,6 @@ class DashboardService
         })->count();
 
         return [
-            'rapports_recus' => $this->reports->countForMentor($mentor->id),
             'mes_stagiaires' => $stages->pluck('stagiaire_id')->unique()->count(),
             'mes_stages' => $stages->count(),
             'stages_en_cours' => $stages->where('statut', 'en_cours')->count(),
@@ -78,12 +75,12 @@ class DashboardService
         return [
             'stage' => $stage,
             'mentor' => $stage?->mentor,
-            'mes_projets' => $stage?->projects->count() ?? 0,
+            'mes_projets' => $this->projects->countForStagiaire($stagiaire->id),
             'taches_a_faire' => $tachesParStatut['a_faire'] ?? 0,
             'taches_en_cours' => $tachesParStatut['en_cours'] ?? 0,
             'taches_en_revue' => $tachesParStatut['en_revue'] ?? 0,
             'taches_terminees' => $tachesParStatut['termine'] ?? 0,
-            'mes_documents' => $this->documents->findByUtilisateur($stagiaire->id)->count(),
+            'mes_documents' => $this->documents->countForStagiaire($stagiaire->id),
         ];
     }
 }

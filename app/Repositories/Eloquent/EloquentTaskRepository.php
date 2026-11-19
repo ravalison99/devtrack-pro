@@ -9,16 +9,32 @@ use Illuminate\Database\Eloquent\Collection;
 
 class EloquentTaskRepository implements TaskRepositoryInterface
 {
-    use FiltreParMembreDuStage;
+    use FiltreParAccesAuProjet;
 
     public function findById(int $id): ?Task
     {
-        return Task::with(['project', 'comments.utilisateur', 'attachments'])->find($id);
+        return Task::with([
+            'project',
+            'assigne',
+            'comments' => fn ($q) => $q->orderBy('id'),
+            'comments.utilisateur',
+            'attachments' => fn ($q) => $q->orderBy('id'),
+            'attachments.utilisateur',
+        ])->find($id);
     }
 
     public function findByProject(int $projectId): Collection
     {
-        return Task::where('project_id', $projectId)->get();
+        return Task::with('assigne')->where('project_id', $projectId)->get();
+    }
+
+    /** Tâches d'un projet visibles par un stagiaire : celles qui lui sont assignées (toutes pour le chef de groupe). */
+    public function findByProjectVisiblesPar(int $projectId, int $stagiaireId): Collection
+    {
+        return Task::with('assigne')
+            ->where('project_id', $projectId)
+            ->visiblesPar($stagiaireId)
+            ->get();
     }
 
     public function create(array $data): Task
@@ -29,12 +45,13 @@ class EloquentTaskRepository implements TaskRepositoryInterface
     public function updateStatut(Task $task, string $statut): Task
     {
         $task->update(['statut' => $statut]);
+
         return $task;
     }
 
     public function countByStatutForStagiaire(int $stagiaireId): array
     {
-        return $this->parMembreDuStage('stagiaire_id', $stagiaireId)
+        return $this->pourStagiaire($stagiaireId)
             ->selectRaw('statut, count(*) as total')
             ->groupBy('statut')
             ->pluck('total', 'statut')
@@ -46,13 +63,19 @@ class EloquentTaskRepository implements TaskRepositoryInterface
         return Task::count();
     }
 
-    protected function requete(): Builder
+    /** Pour un stagiaire, la visibilité dépend de l'assignation et non du simple accès au projet. */
+    protected function pourStagiaire(int $stagiaireId): Builder
     {
-        return Task::with(['project', 'comments', 'attachments']);
+        return $this->requete()->visiblesPar($stagiaireId);
     }
 
-    protected function relationStage(): string
+    protected function requete(): Builder
     {
-        return 'project.stage';
+        return Task::with(['project', 'assigne', 'comments', 'attachments']);
+    }
+
+    protected function relationProjet(): ?string
+    {
+        return 'project';
     }
 }

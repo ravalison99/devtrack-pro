@@ -17,13 +17,28 @@
 
                             <div class="mb-3">
                                 <label class="form-label">Projet</label>
-                                <select name="project_id" class="form-select">
+                                <select name="project_id" id="projet-tache" class="form-select">
                                     @foreach ($projects as $project)
                                         <option value="{{ $project->id }}" @selected(($projetSelectionne?->id ?? old('project_id')) == $project->id)>
-                                            {{ $project->nom }} — {{ $project->stage->stagiaire->name }}
+                                            {{ $project->nom }}@if ($project->groupe) — {{ $project->groupe->nom }}@elseif ($project->stage) — {{ $project->stage->stagiaire?->name ?? "Compte supprimé" }}@endif
                                         </option>
                                     @endforeach
                                 </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Assigner à</label>
+                                <select name="assigne_id" id="assigne-tache" class="form-select">
+                                    <option value="">— Sélectionner un stagiaire —</option>
+                                    @foreach ($projects as $project)
+                                        @foreach ($project->stagiaires() as $stagiaire)
+                                            <option value="{{ $stagiaire->id }}" data-projet="{{ $project->id }}" @selected((string) old('assigne_id') === (string) $stagiaire->id)>
+                                                {{ $stagiaire->name }}
+                                            </option>
+                                        @endforeach
+                                    @endforeach
+                                </select>
+                                <div class="form-text">Obligatoire pour un projet confié à un groupe : la tâche n'est visible que par le stagiaire choisi (et le chef de groupe).</div>
                             </div>
 
                             <div class="mb-3">
@@ -61,4 +76,28 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Confort d'interface : seuls les stagiaires du projet choisi sont proposés.
+        // L'appartenance de l'assigné au projet est vérifiée côté serveur.
+        (function () {
+            var projet = document.getElementById('projet-tache');
+            var assigne = document.getElementById('assigne-tache');
+            if (!projet || !assigne) return;
+
+            function actualiser() {
+                Array.prototype.forEach.call(assigne.options, function (option) {
+                    if (!option.value) return;
+                    var visible = option.getAttribute('data-projet') === projet.value;
+                    option.hidden = !visible;
+                    option.disabled = !visible;
+                });
+                var courante = assigne.options[assigne.selectedIndex];
+                if (courante && courante.disabled) assigne.value = '';
+            }
+
+            projet.addEventListener('change', actualiser);
+            actualiser();
+        })();
+    </script>
 @endsection

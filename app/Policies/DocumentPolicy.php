@@ -7,13 +7,16 @@ use App\Models\User;
 
 class DocumentPolicy
 {
-    public function create(User $user): bool
-    {
-        return true;
-    }
-
+    /**
+     * Administrateur et mentor : tous les documents de l'application.
+     * Stagiaire (chef de groupe ou non) : uniquement les documents des projets qui lui sont attribués.
+     */
     public function view(User $user, Document $document): bool
     {
-        return $user->isAdmin() || $user->id === $document->utilisateur_id;
+        if ($user->isAdmin() || $user->isMentor()) {
+            return true;
+        }
+
+        return $document->project !== null && $user->can('view', $document->project);
     }
 }

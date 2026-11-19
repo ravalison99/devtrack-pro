@@ -9,8 +9,20 @@ class NotifyTaskAssignment
 {
     public function handle(TaskCreated $event): void
     {
-        $stagiaire = $event->task->project->stage->stagiaire;
+        $task = $event->task;
 
-        $stagiaire?->notify(new TaskAssignedNotification($event->task));
+        // La tâche est confiée à son assigné ; sans assigné (projet historique), à tous les stagiaires du projet.
+        $destinataires = $task->assigne
+            ? collect([$task->assigne])
+            : $task->project->stagiaires();
+
+        foreach ($destinataires as $destinataire) {
+            // Inutile de notifier quelqu'un de la tâche qu'il vient de s'assigner lui-même.
+            if ($destinataire->id === auth()->id()) {
+                continue;
+            }
+
+            $destinataire->notify(new TaskAssignedNotification($task));
+        }
     }
 }
