@@ -23,6 +23,15 @@ class EloquentJournalRepository implements JournalRepositoryInterface
             ->withQueryString();
     }
 
+    public function datesRemplies(int $stagiaireId, string $depuis): array
+    {
+        return JournalEntry::where('stagiaire_id', $stagiaireId)
+            ->whereDate('date', '>=', $depuis)
+            ->pluck('date')
+            ->map(fn ($date) => $date->toDateString())
+            ->all();
+    }
+
     public function create(array $data): JournalEntry
     {
         return JournalEntry::create($data);
@@ -31,6 +40,7 @@ class EloquentJournalRepository implements JournalRepositoryInterface
     public function update(JournalEntry $entry, array $data): JournalEntry
     {
         $entry->update($data);
+
         return $entry;
     }
 }

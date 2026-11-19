@@ -25,21 +25,23 @@ class TaskController extends Controller
         protected ProjectRepositoryInterface $projects
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
         $utilisateur = auth()->user();
 
-        $tasks = match (true) {
-            $utilisateur->isAdmin() => $this->tasks->paginateAll(),
-            $utilisateur->isMentor() => $this->tasks->paginateForMentor($utilisateur->id),
-            default => $this->tasks->paginateForStagiaire($utilisateur->id),
-        };
+        $filtres = $request->validate([
+            'statut' => ['nullable', 'in:a_faire,en_cours,en_revue,termine'],
+            'retard' => ['nullable', 'boolean'],
+            'q' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $tasks = $this->tasks->paginateFor($utilisateur, $filtres);
 
         $transitionsParTache = collect($tasks->items())->mapWithKeys(
             fn (Task $task) => [$task->id => $this->taskService->transitionsAutoriseesPour($task, $utilisateur)]
         );
 
-        return view('tasks.index', compact('tasks', 'transitionsParTache'));
+        return view('tasks.index', compact('tasks', 'transitionsParTache', 'filtres'));
     }
 
     public function show(Task $task)
@@ -47,8 +49,9 @@ class TaskController extends Controller
         $this->authorize('view', $task);
 
         $task = $this->tasks->findById($task->id);
+        $transitions = $this->taskService->transitionsAutoriseesPour($task, auth()->user());
 
-        return view('tasks.show', compact('task'));
+        return view('tasks.show', compact('task', 'transitions'));
     }
 
     public function create(Request $request)

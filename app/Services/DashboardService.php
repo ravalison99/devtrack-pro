@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Repositories\Contracts\DocumentRepositoryInterface;
+use App\Repositories\Contracts\JournalRepositoryInterface;
 use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Repositories\Contracts\StageRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
@@ -16,7 +17,8 @@ class DashboardService
         protected TaskRepositoryInterface $tasks,
         protected UserRepositoryInterface $users,
         protected ProjectRepositoryInterface $projects,
-        protected DocumentRepositoryInterface $documents
+        protected DocumentRepositoryInterface $documents,
+        protected JournalRepositoryInterface $journal
     ) {}
 
     public function indicateursPour(User $user): array
@@ -67,20 +69,37 @@ class DashboardService
         ];
     }
 
+    /**
+     * Accueil du stagiaire : son projet et son équipe, ce qu'il doit faire maintenant, sa progression,
+     * son journal du jour et l'activité récente qui le concerne.
+     */
     protected function indicateursStagiaire(User $stagiaire): array
     {
         $tachesParStatut = $this->tasks->countByStatutForStagiaire($stagiaire->id);
         $stage = $this->stages->findByStagiaire($stagiaire->id);
+        $projet = $this->projects->findPrincipalForStagiaire($stagiaire->id);
+        $groupe = $projet?->groupe;
+        $estChef = $groupe !== null && $groupe->chef_id === $stagiaire->id;
 
         return [
             'stage' => $stage,
-            'mentor' => $stage?->mentor,
+            'mentor' => $projet?->mentor ?? $stage?->mentor,
+            'projet' => $projet,
+            'groupe' => $groupe,
+            'est_chef' => $estChef,
             'mes_projets' => $this->projects->countForStagiaire($stagiaire->id),
             'taches_a_faire' => $tachesParStatut['a_faire'] ?? 0,
             'taches_en_cours' => $tachesParStatut['en_cours'] ?? 0,
             'taches_en_revue' => $tachesParStatut['en_revue'] ?? 0,
             'taches_terminees' => $tachesParStatut['termine'] ?? 0,
             'mes_documents' => $this->documents->countForStagiaire($stagiaire->id),
+
+            'mes_taches' => $this->tasks->aFaireMaintenant($stagiaire->id),
+            'progression' => $this->tasks->progressionDe($stagiaire->id),
+            // Le chef de groupe suit aussi l'avancement de tout le projet.
+            'progression_equipe' => ($estChef && $projet) ? $this->tasks->progressionProjet($projet->id) : null,
+            'journal_rempli' => $this->journal->findByStagiaireAndDate($stagiaire->id, today()->toDateString()) !== null,
+            'activite' => $stagiaire->notifications()->latest()->limit(5)->get(),
         ];
     }
 }
