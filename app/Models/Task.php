@@ -78,6 +78,30 @@ class Task extends Model
             ->values();
     }
 
+    /** La tâche est en retard : échéance dépassée et pas terminée. */
+    public function estEnRetard(): bool
+    {
+        return $this->date_echeance !== null
+            && $this->statut !== 'termine'
+            && $this->date_echeance->lt(today());
+    }
+
+    /**
+     * « Mes tâches » : celles qui me sont assignées (et, pour un projet historique sans assigné,
+     * celles du stage dont je suis le stagiaire). Plus étroit que visiblesPar : le chef de groupe
+     * voit toutes les tâches du projet, mais seules les siennes sont « ses » tâches.
+     */
+    public function scopeDe(Builder $query, int $stagiaireId): Builder
+    {
+        return $query->where(function (Builder $q) use ($stagiaireId) {
+            $q->where('assigne_id', $stagiaireId)
+                ->orWhere(function (Builder $w) use ($stagiaireId) {
+                    $w->whereNull('assigne_id')
+                        ->whereHas('project.stage', fn (Builder $s) => $s->where('stagiaire_id', $stagiaireId));
+                });
+        });
+    }
+
     public function scopeVisiblesPar(Builder $query, int $stagiaireId): Builder
     {
         return $query->where(function (Builder $q) use ($stagiaireId) {

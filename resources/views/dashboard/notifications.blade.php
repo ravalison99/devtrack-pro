@@ -35,7 +35,7 @@
                     $message = $notification->data['message'] ?? $notification->data['titre'] ?? 'Notification';
                     $icone = $notification->data['icone'] ?? 'bi-bell';
                 @endphp
-                <div class="list-group-item d-flex gap-3 justify-content-between align-items-center {{ $notification->read_at ? '' : 'bg-light' }}">
+                <div class="list-group-item d-flex gap-3 justify-content-between align-items-center {{ $notification->read_at ? '' : 'notif-non-lue' }}">
                     <a href="{{ route('notifications.open', $notification->id) }}" class="d-flex gap-3 text-decoration-none text-body flex-grow-1">
                         <i class="bi {{ $icone }} fs-5 mt-1 {{ $notification->read_at ? 'text-muted' : 'text-primary' }}"></i>
                         <div>
@@ -58,10 +58,8 @@
                     </form>
                 </div>
             @empty
-                <div class="list-group-item text-center text-muted py-5">
-                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                    {{ $seulementNonLues ? 'Aucune notification non lue.' : 'Aucune notification.' }}
-                </div>
+                <x-etat-vide icone="bi-bell-slash" :titre="$seulementNonLues ? 'Aucune notification non lue' : 'Aucune notification'"
+                    texte="Vous serez prévenu(e) ici des tâches, commentaires et documents qui vous concernent." />
             @endforelse
         </div>
         @if ($notifications->hasPages())

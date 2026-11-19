@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\Contracts\JournalRepositoryInterface;
 use App\Services\JournalService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 
 class JournalController extends Controller
@@ -13,10 +14,22 @@ class JournalController extends Controller
         protected JournalRepositoryInterface $entries
     ) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        $entries = $this->entries->paginateByStagiaire(auth()->id());
-        return view('journal.index', compact('entries'));
+        $utilisateur = $request->user();
+
+        // Un clic sur un jour de la semaine charge son entrée pour la lire ou la modifier.
+        $request->validate(['date' => ['nullable', 'date']]);
+        $dateChoisie = $request->filled('date')
+            ? CarbonImmutable::parse($request->query('date'))->toDateString()
+            : today()->toDateString();
+
+        return view('journal.index', [
+            'entries' => $this->entries->paginateByStagiaire($utilisateur->id, 6),
+            'entreeChoisie' => $this->entries->findByStagiaireAndDate($utilisateur->id, $dateChoisie),
+            'dateChoisie' => $dateChoisie,
+            'semaine' => $this->journalService->semaine($utilisateur),
+        ]);
     }
 
     public function store(Request $request)

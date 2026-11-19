@@ -8,9 +8,11 @@
         $peutDeposer = auth()->user()->can('deposerDocument', $project);
     @endphp
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <x-fil-ariane :items="[['Projets', route('projects.index')], [$project->nom]]" />
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <h1 class="page-title h3 mb-0"><i class="bi bi-folder2-open me-2"></i>{{ $project->nom }}</h1>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
             @can('gererTaches', $project)
                 <a href="{{ route('tasks.create', ['project_id' => $project->id]) }}" class="btn btn-primary btn-sm">
                     <i class="bi bi-plus-lg me-1"></i>Créer une tâche
@@ -19,14 +21,45 @@
             <a href="{{ route('kanban.show', $project->id) }}" class="btn btn-outline-primary btn-sm">
                 <i class="bi bi-kanban me-1"></i>Kanban
             </a>
-            <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i>Retour aux projets
-            </a>
         </div>
     </div>
 
     <div class="row g-4">
         <div class="col-12 col-lg-5">
+            {{-- Équipe et avancement --}}
+            <div class="card mb-4">
+                <div class="card-header"><i class="bi bi-graph-up-arrow me-1"></i>Équipe et avancement</div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <x-anneau :pourcentage="$progression['pourcentage']" taille="5.5rem" libelle="Avancement" />
+                        <div class="small">
+                            <div class="fw-semibold mb-1">{{ $voitToutLeProjet ? 'Avancement du projet' : 'Ma progression' }}</div>
+                            <div class="text-muted">{{ $progression['terminees'] }} tâche{{ $progression['terminees'] > 1 ? 's' : '' }} terminée{{ $progression['terminees'] > 1 ? 's' : '' }} sur {{ $progression['total'] }}</div>
+                            @if ($progression['en_retard'] > 0)
+                                <span class="pastille pastille-alerte mt-1"><i class="bi bi-exclamation-triangle-fill"></i>{{ $progression['en_retard'] }} en retard</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if ($groupe)
+                        <div class="small text-muted mb-2">Équipe</div>
+                        <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                            @foreach ($groupe->membres as $membre)
+                                <li class="d-flex align-items-center gap-2">
+                                    <x-avatar :user="$membre" />
+                                    <span class="flex-grow-1">{{ $membre->name }}</span>
+                                    @if ($membre->id === $groupe->chef_id)
+                                        <span class="pastille pastille-attention"><i class="bi bi-star-fill"></i>Chef</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <x-etat-vide icone="bi-people" titre="Pas encore d'équipe" texte="Un groupe sera associé à ce projet par le mentor." class="py-3" />
+                    @endif
+                </div>
+            </div>
+
             <div class="card mb-4">
                 <div class="card-header"><i class="bi bi-info-circle me-1"></i>Informations</div>
                 <div class="card-body">

@@ -16,6 +16,8 @@ interface ProjectRepositoryInterface
 
     public function findForMentor(int $mentorId): Collection;
 
+    public function findPrincipalForStagiaire(int $stagiaireId): ?Project;
+
     public function findForChef(int $chefId): Collection;
 
     public function findNonAffectesForMentor(int $mentorId): Collection;

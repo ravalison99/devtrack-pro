@@ -31,16 +31,16 @@
                             <td>
                                 {{-- Valeur réelle : un groupe est-il associé à ce projet en base ? --}}
                                 @if ($project->estAffecte())
-                                    <span class="badge bg-success">Affecté</span>
+                                    <span class="pastille pastille-succes"><i class="bi bi-people-fill"></i>Affecté</span>
                                 @else
-                                    <span class="badge bg-warning text-dark">Non affecté</span>
+                                    <span class="pastille pastille-attention"><i class="bi bi-hourglass-split"></i>Non affecté</span>
                                 @endif
                             </td>
                             <td>
                                 @if ($project->archive)
-                                    <span class="badge bg-secondary">Oui</span>
+                                    <span class="pastille pastille-neutre"><i class="bi bi-archive"></i>Oui</span>
                                 @else
-                                    <span class="badge bg-success">Non</span>
+                                    <span class="pastille pastille-succes">Non</span>
                                 @endif
                             </td>
                             <td class="text-end">
@@ -54,7 +54,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center text-muted py-4">Aucun projet pour le moment.</td>
+                            <td colspan="4"><x-etat-vide icone="bi-folder2-open" titre="Aucun projet pour le moment" texte="Les projets qui vous sont attribués apparaîtront ici." /></td>
                         </tr>
                     @endforelse
                 </tbody>

@@ -2,53 +2,15 @@
 
 @section('title', 'Kanban — ' . $project->nom)
 
-@push('styles')
-    <style>
-        .kanban-board {
-            display: flex;
-            gap: 1rem;
-            overflow-x: auto;
-            padding-bottom: .5rem;
-        }
-
-        .kanban-colonne {
-            background: #eef0f6;
-            border-radius: .9rem;
-            padding: .9rem;
-            min-width: 260px;
-            flex: 1 1 260px;
-        }
-
-        .kanban-colonne.drag-over {
-            background: #e0e4f5;
-        }
-
-        .kanban-carte {
-            background: #fff;
-            border-radius: .6rem;
-            padding: .75rem .9rem;
-            margin-bottom: .6rem;
-            box-shadow: 0 .1rem .4rem rgba(31, 41, 55, .08);
-            cursor: grab;
-        }
-
-        .kanban-carte:active {
-            cursor: grabbing;
-        }
-
-        .kanban-carte-verrouillee {
-            cursor: not-allowed;
-            opacity: .65;
-        }
-    </style>
-@endpush
-
 @section('content')
-    <a href="{{ route('projects.index') }}" class="text-decoration-none small text-muted d-inline-block mb-2">
-        <i class="bi bi-arrow-left me-1"></i>Retour aux projets
-    </a>
+    <x-fil-ariane :items="[['Projets', route('projects.index')], [$project->nom, route('projects.show', $project->id)], ['Kanban']]" />
 
-    <h1 class="page-title h3 mb-4"><i class="bi bi-kanban me-2"></i>Kanban — {{ $project->nom }}</h1>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <h1 class="page-title h3 mb-0"><i class="bi bi-kanban me-2"></i>Kanban — {{ $project->nom }}</h1>
+        <a href="{{ route('projects.show', $project->id) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Retour au projet
+        </a>
+    </div>
 
     @php
         $intitulesColonnes = [
@@ -62,26 +24,32 @@
     <div class="kanban-board">
         @foreach ($colonnes as $statut => $tasksDeLaColonne)
             <div class="kanban-colonne" data-statut="{{ $statut }}">
-                <h6 class="text-uppercase text-muted mb-3">
-                    <i class="bi {{ $intitulesColonnes[$statut][1] ?? 'bi-circle' }} me-1"></i>
-                    {{ $intitulesColonnes[$statut][0] ?? $statut }}
-                    <span class="badge bg-secondary rounded-pill float-end">{{ $tasksDeLaColonne->count() }}</span>
+                <h6 class="text-uppercase text-muted mb-3 d-flex justify-content-between align-items-center">
+                    <span><i class="bi {{ $intitulesColonnes[$statut][1] ?? 'bi-circle' }} me-1"></i>{{ $intitulesColonnes[$statut][0] ?? $statut }}</span>
+                    <span class="pastille pastille-neutre">{{ $tasksDeLaColonne->count() }}</span>
                 </h6>
 
                 @foreach ($tasksDeLaColonne as $task)
                     @php $transitions = $transitionsParTache[$task->id] ?? []; @endphp
                     <div
-                        class="kanban-carte {{ count($transitions) === 0 ? 'kanban-carte-verrouillee' : '' }}"
+                        class="kanban-carte prio-{{ $task->priorite }} {{ count($transitions) === 0 ? 'kanban-carte-verrouillee' : '' }}"
                         draggable="{{ count($transitions) > 0 ? 'true' : 'false' }}"
                         data-task-id="{{ $task->id }}"
                         data-transitions="{{ implode(',', $transitions) }}"
                     >
-                        {{ $task->titre }}
-                        @if ($task->assigne)
-                            <div class="small text-muted"><i class="bi bi-person me-1"></i>{{ $task->assigne->name }}</div>
-                        @endif
+                        <a href="{{ route('tasks.show', $task) }}" class="lien-tache d-block mb-2" draggable="false">{{ $task->titre }}</a>
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <x-echeance :date="$task->date_echeance" :statut="$task->statut" />
+                            @if ($task->assigne)
+                                <x-avatar :user="$task->assigne" taille="sm" />
+                            @endif
+                        </div>
                     </div>
                 @endforeach
+
+                @if ($tasksDeLaColonne->isEmpty())
+                    <div class="text-center text-muted small py-4">Aucune tâche</div>
+                @endif
             </div>
         @endforeach
     </div>

@@ -49,6 +49,15 @@ class EloquentProjectRepository implements ProjectRepositoryInterface
         return Project::count();
     }
 
+    /** Le projet d'un stagiaire (groupe ou stage historique), avec groupe, équipe et mentor. */
+    public function findPrincipalForStagiaire(int $stagiaireId): ?Project
+    {
+        return Project::with(['groupe.chef', 'groupe.membres', 'mentor', 'stage.mentor'])
+            ->duStagiaire($stagiaireId)
+            ->orderByDesc('id')
+            ->first();
+    }
+
     /** Projets confiés à un groupe dont le stagiaire est chef. */
     public function findForChef(int $chefId): Collection
     {
